@@ -1,3 +1,10 @@
+---
+title: "Uruchamianie lokalnych agentów AI w oparciu o Ollama"
+description: "Jak uruchomić modele językowe na własnym komputerze: instalacja Ollamy, wybór modelu, lokalne REST API i podpięcie pod edytor kodu."
+slug: lokalni-agenci-ai-ollama
+episode: 1
+verified: 2026-09-02
+---
 # Uruchamianie lokalnych agentów AI w oparciu o Ollama
 
 <p align="center">

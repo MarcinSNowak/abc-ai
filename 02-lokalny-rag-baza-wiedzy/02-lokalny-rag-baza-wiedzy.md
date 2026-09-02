@@ -1,3 +1,10 @@
+---
+title: "Budowa agenta z dostępem do bazy wiedzy projektu (RAG) w oparciu o Ollama"
+description: "Jak dać lokalnemu modelowi dostęp do kodu i dokumentacji projektu: indeksowanie repozytorium, embeddingi, wyszukiwanie i ocena jakości odpowiedzi."
+slug: lokalny-rag-baza-wiedzy
+episode: 2
+verified: 2026-09-02
+---
 # Budowa agenta z dostępem do bazy wiedzy projektu (RAG) w oparciu o Ollama
 
 <p align="center">

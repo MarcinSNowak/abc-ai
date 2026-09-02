@@ -1,3 +1,10 @@
+---
+title: "Kompletny agent programisty: łączymy Ollama, narzędzia, RAG i pamięć"
+description: "Spinamy RAG, pamięć długoterminową i wywoływanie narzędzi w jedną pętlę decyzyjną — działającego lokalnie agenta programisty opartego o Ollamę."
+slug: kompletny-agent-programisty
+episode: 4
+verified: 2026-09-02
+---
 # Kompletny agent programisty: łączymy Ollama, narzędzia, RAG i pamięć
 
 <p align="center">

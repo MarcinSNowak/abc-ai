@@ -1,3 +1,10 @@
+---
+title: "Pamięć długoterminowa agenta AI w kontekście projektu (Ollama)"
+description: "Jak sprawić, żeby agent pamiętał ustalenia z poprzednich rozmów: wyciąganie faktów, ocena istotności i trwałe przechowywanie wiedzy o projekcie."
+slug: pamiec-dlugoterminowa-agenta
+episode: 3
+verified: 2026-09-02
+---
 # Pamięć długoterminowa agenta AI w kontekście projektu (Ollama)
 
 <p align="center">
