@@ -28,15 +28,15 @@ Brakujący element — **bazę wektorową** (do przechowywania i wyszukiwania em
 
 ```mermaid
 flowchart LR
-    Docs["Dokumentacja projektu\n(kod, README, ADR, wiki)"] -->|chunking| Chunker["Podział na fragmenty"]
-    Chunker -->|"POST /api/embed"| Embed["Ollama\nmodel embeddingowy\n(np. nomic-embed-text)"]
-    Embed --> VDB[("Lokalna baza wektorowa\nChroma / LanceDB / Qdrant")]
+    Docs["Dokumentacja projektu<br/>(kod, README, ADR, wiki)"] -->|chunking| Chunker["Podział na fragmenty"]
+    Chunker -->|"POST /api/embed"| Embed["Ollama<br/>model embeddingowy<br/>(np. nomic-embed-text)"]
+    Embed --> VDB[("Lokalna baza wektorowa<br/>Chroma / LanceDB / Qdrant")]
 
     Q["Pytanie programisty"] -->|"POST /api/embed"| Embed
     Embed -->|"wektor zapytania"| VDB
-    VDB -->|"top-k najbardziej podobnych fragmentów"| Prompt["Złożenie promptu:\npytanie + kontekst"]
-    Prompt -->|"POST /api/chat"| LLM["Ollama\nmodel generatywny\n(np. qwen2.5-coder)"]
-    LLM --> Answer["Odpowiedź osadzona\nw kontekście projektu"]
+    VDB -->|"top-k najbardziej podobnych fragmentów"| Prompt["Złożenie promptu:<br/>pytanie + kontekst"]
+    Prompt -->|"POST /api/chat"| LLM["Ollama<br/>model generatywny<br/>(np. qwen2.5-coder)"]
+    LLM --> Answer["Odpowiedź osadzona<br/>w kontekście projektu"]
 ```
 
 ### Dlaczego to ważne dla programisty?

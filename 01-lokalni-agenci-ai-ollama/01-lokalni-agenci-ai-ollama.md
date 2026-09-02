@@ -23,12 +23,12 @@ Coraz więcej zespołów programistycznych chce korzystać z modeli językowych 
 
 ```mermaid
 flowchart LR
-    Dev["Programista"] --> IDE["IDE / Edytor\n(VS Code, Rider, Android Studio)"]
-    IDE -->|"wtyczka: Continue / Cline / ProxyAI"| API["Ollama REST API\nlocalhost:11434"]
+    Dev["Programista"] --> IDE["IDE / Edytor<br/>(VS Code, Rider, Android Studio)"]
+    IDE -->|"wtyczka: Continue / Cline / ProxyAI"| API["Ollama REST API<br/>localhost:11434"]
     CLI["Terminal (ollama run / pull)"] --> Server
     API --> Server["Serwer Ollama"]
-    Server --> Models[("Lokalne modele LLM\nna dysku")]
-    Server --> Runtime["Silnik inferencji\n(CPU / CUDA / Metal)"]
+    Server --> Models[("Lokalne modele LLM<br/>na dysku")]
+    Server --> Runtime["Silnik inferencji<br/>(CPU / CUDA / Metal)"]
 ```
 
 ## Wymagania wstępne
@@ -393,8 +393,8 @@ Ollama współpracuje z popularnymi narzędziami dla developerów:
 
 ```mermaid
 flowchart TB
-    Editor["Edytor kodu\n(VS Code / Rider / Android Studio)"] --> Plugin["Wtyczka AI\n(Continue / Cline / ProxyAI)"]
-    Plugin -->|"model czatu"| API["Ollama API\nlocalhost:11434"]
+    Editor["Edytor kodu<br/>(VS Code / Rider / Android Studio)"] --> Plugin["Wtyczka AI<br/>(Continue / Cline / ProxyAI)"]
+    Plugin -->|"model czatu"| API["Ollama API<br/>localhost:11434"]
     Plugin -->|"model autouzupełniania"| API
     API --> ModelA["np. qwen2.5-coder:7b"]
     API --> ModelB["np. qwen2.5-coder:1.5b"]
