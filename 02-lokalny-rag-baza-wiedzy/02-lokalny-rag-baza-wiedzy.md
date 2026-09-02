@@ -286,9 +286,132 @@ context:
 
 Model embeddingowy nie ma w `config.yaml` osobnego klucza — jest zwykłym wpisem na liście `models`, tyle że z rolą `embed` (starsze poradniki pokazują tu `embeddingsProvider` ze zdezaktualizowanego formatu `config.json`; patrz uwaga w [odcinku 1](../01-lokalni-agenci-ai-ollama/01-lokalni-agenci-ai-ollama.md#jak-dodać-zainstalowane-modele-do-konfiguracji-ide)).
 
-Po zapisaniu konfiguracji w panelu czatu można zapytać np. `@codebase Jak działa proces generowania faktury?` — Continue samodzielnie wyszuka najbardziej podobne fragmenty repozytorium (indeksowane lokalnie, przyrostowo, w tle) i doda je jako kontekst do zapytania.
+Po zapisaniu konfiguracji w panelu czatu można zapytać np. `@codebase Jak działa proces generowania faktury?` — Continue wyszuka fragmenty repozytorium (indeksowane lokalnie, przyrostowo, w tle) i doda je jako kontekst do zapytania.
 
 > Provider `docs` pozwala dodatkowo zaindeksować zewnętrzną dokumentację (np. dokumentację frameworka) podając jej URL w ustawieniach — przydatne, gdy baza wiedzy ma wykraczać poza sam kod repozytorium.
+
+### Co `@codebase` naprawdę wysyła do modelu
+
+Nazwa sugeruje, że model dostaje repozytorium. Nie dostaje — i to jest najczęstsze nieporozumienie wokół tej funkcji. `@codebase` to zwykły RAG: Continue wyszukuje kilka fragmentów kodu i wkleja je do promptu. Model widzi tylko te fragmenty.
+
+Ile ich jest, wynika z jednej linijki w kodzie Continue:
+
+```text
+liczba fragmentów = min(25, okno_kontekstu / 512 / 2)
+```
+
+Czyli **`@codebase` zajmuje połowę okna kontekstu**, licząc 512 tokenów na fragment, nie więcej niż 25 fragmentów:
+
+| Okno kontekstu | Fragmentów | Zajęte przez `@codebase` |
+|---|---|---|
+| 4 096 | 4 | ~2 000 tokenów |
+| 8 192 | 8 | ~4 000 tokenów |
+| 16 384 | 16 | ~8 000 tokenów |
+| 32 768 i więcej | 25 (limit) | ~12 800 tokenów |
+
+Druga niespodzianka: fragmenty nie pochodzą wyłącznie z bazy wektorowej. Continue miesza cztery źródła w sztywnych proporcjach:
+
+| Źródło | Udział |
+|---|---|
+| Pliki ostatnio edytowane | 25% |
+| Wyszukiwanie pełnotekstowe (trigramy) | 25% |
+| Baza wektorowa (embeddingi) | 50% |
+| Mapa repozytorium | dodatkowo, poza podziałem |
+
+Wynika stąd rzecz, która potrafi kosztować godzinę szukania: **`@codebase` działa również bez modelu embeddingowego**. Jeśli zapomnisz o wpisie z rolą `embed`, Continue po prostu pomija połowę wyszukiwania i odpowiada dalej — bez błędu, bez ostrzeżenia. Dostajesz gorsze odpowiedzi i żadnej wskazówki dlaczego. W kodzie jest nawet ostrzeżenie na ten temat, świadomie zakomentowane.
+
+Praktyczny wniosek: jeśli `@codebase` daje słabe wyniki, najpierw sprawdź `ollama list`, czy model embeddingowy w ogóle jest pobrany, a potem czy ma w `config.yaml` rolę `embed`.
+
+### Continue nadpisuje Twoje ustawienie okna kontekstu
+
+Przy każdym żądaniu Continue wysyła do Ollamy własne `num_ctx`. Oznacza to, że zmienna `OLLAMA_CONTEXT_LENGTH` z [odcinka 1](../01-lokalni-agenci-ai-ollama/01-lokalni-agenci-ai-ollama.md#okno-kontekstu--ile-model-naprawdę-pamięta) **nie ma znaczenia dla ruchu z Continue** — decyduje konfiguracja wtyczki, w tej kolejności:
+
+1. `contextLength` w `defaultCompletionOptions` modelu — jeśli ustawione, wygrywa ze wszystkim.
+2. `num_ctx` zapisany w Modelfile modelu — Continue odczytuje go z `/api/show`.
+3. **8192** — wartość domyślna Continue dla Ollamy, gdy nie ma ani jednego, ani drugiego.
+
+Punkt trzeci dotyczy każdego, kto niczego nie ustawił — i tu liczby przestają się spinać. Prompt przycinany jest bowiem dwa razy, przez dwa niezależne mechanizmy:
+
+**Continue** przycina go do `contextLength − maxTokens`, funkcją o wymownej nazwie `pruneRawPromptFromTop` — czyli **od góry, od najstarszej części**. Domyślny `maxTokens` to 4096, więc przy oknie 8192 zostaje 4096 tokenów.
+
+**Ollama** przycina niezależnie, do **połowy `num_ctx`** — jak zmierzyliśmy w [odcinku 1](../01-lokalni-agenci-ai-ollama/01-lokalni-agenci-ai-ollama.md#na-prompt-przypada-połowa-okna). Przy oknie 8192 to też 4096, ale ta zbieżność jest przypadkowa: gdybyś zmniejszył `maxTokens` do 512, Continue puściłoby prompt o długości 7680, a Ollama i tak przyjęłaby 4096 i wycięła resztę bez słowa.
+
+Zapamiętaj tę drugą część, bo psuje najbardziej naturalny odruch: **zmniejszanie `maxTokens`, żeby zrobić miejsce na prompt, nie działa.** Ollama nie bierze tego parametru pod uwagę przy dzieleniu okna.
+
+Realny budżet promptu przy ustawieniach domyślnych to więc **4096 tokenów**, a samo `@codebase` chce ich około 4000. Na instrukcję systemową, historię rozmowy i Twoje pytanie nie zostaje praktycznie nic. To jest najczęstsza przyczyna sytuacji, w której `@codebase` „przestaje słuchać instrukcji": instrukcja nadal jest w konfiguracji, tylko nie dociera do modelu.
+
+Skoro jedynym parametrem, który realnie zwiększa miejsce na prompt, jest okno — to jego trzeba ruszyć:
+
+```yaml
+models:
+  - name: Qwen Coder 7B
+    provider: ollama
+    model: qwen2.5-coder:7b
+    apiBase: http://localhost:11434
+    roles: [chat, edit, apply]
+    defaultCompletionOptions:
+      contextLength: 16384
+```
+
+Bilans po tej zmianie: okno 16384 daje 8192 tokeny na prompt, `@codebase` weźmie z tego 16 fragmentów (~8000 tokenów)… czyli znowu prawie wszystko. Dlatego przy dużym oknie warto dodatkowo ograniczyć samo wyszukiwanie:
+
+```yaml
+context:
+  - provider: codebase
+    params:
+      nFinal: 8
+```
+
+Osiem fragmentów przy oknie 16384 zostawia połowę budżetu promptu na instrukcję systemową, narzędzia i rozmowę. To jest ustawienie, od którego warto zacząć — i pierwsze, które warto zmienić, gdy odpowiedzi wyglądają, jakby model nie widział czegoś oczywistego.
+
+Po zmianie sprawdź `ollama ps`: w kolumnie `CONTEXT` powinno pojawić się 16384, a w kolumnie `PROCESSOR` nadal `100% GPU`. Jeśli pojawił się udział CPU, okno jest za duże dla Twojej karty i cała praca właśnie zwolniła.
+
+### Ćwiczenie: zmierz, ile wysyła Twoje `@codebase`
+
+Wszystkie liczby powyżej pochodzą z jednej maszyny i jednej konfiguracji. U Ciebie wyjdą inne — inny model, inne repozytorium, inne ustawienia. To jedyne ćwiczenie w serii, w którym nie przepisujesz kodu, tylko mierzysz własne środowisko.
+
+Skrypt [`zmierz_codebase.py`](zmierz_codebase.py) staje między Continue a Ollamą i po każdym zapytaniu wypisuje, co naprawdę poszło. Nie wymaga żadnych bibliotek poza standardową i niczego nie zmienia w samej Ollamie.
+
+**1.** Uruchom go w osobnym oknie terminala (na Windowsie `py` zamiast `python3`):
+
+```bash
+python3 zmierz_codebase.py
+```
+
+**2.** W `config.yaml` podmień adres modelu czatu na port skryptu:
+
+```yaml
+    apiBase: http://localhost:11435
+```
+
+**3.** W panelu czatu zadaj pytanie zaczynające się od `@codebase` — najlepiej takie, które naprawdę wymaga przejrzenia projektu, np. `@codebase Gdzie walidowane są dane wejściowe formularza?`
+
+**4.** Wróć do terminala. Zobaczysz mniej więcej to:
+
+```text
+==============================================================
+model:                     qwen2.5-coder:7b
+wiadomości w rozmowie:     2
+prompt:                    19043 znaków, czyli około 7617 tokenów
+tokeny policzone przez Ollamę: 4098
+num_ctx narzucony przez Continue: 8192
+num_predict (limit odpowiedzi): 4096
+budżet promptu (połowa num_ctx): 4096
+wykorzystanie budżetu:     186%
+
+>>> Prompt nie mieści się w budżecie.
+>>> Został przycięty od najstarszej strony,
+>>> czyli od instrukcji systemowej. Bez błędu.
+==============================================================
+```
+
+Najważniejsze są dwie liczby obok siebie: ile tokenów wysłano i ile Ollama faktycznie policzyła. Jeśli druga jest wyraźnie mniejsza, reszta nie dotarła do modelu — a odpowiedź, którą właśnie dostałeś w edytorze, powstała bez niej.
+
+**5.** Teraz zmień `contextLength` na 16384, zrestartuj Continue i powtórz to samo pytanie. Porównaj oba raporty.
+
+Na koniec skasuj linię z `apiBase: http://localhost:11435`, żeby Continue wróciło do rozmowy z Ollamą bezpośrednio.
+
+> **Uwaga o szacowaniu:** skrypt przelicza znaki na tokeny przez stałą 2,5, bo Ollama nie udostępnia endpointu tokenizacji (`/api/tokenize` zwraca 404). Dla mieszanki kodu i polszczyzny pomyłka rzędu 10–20% jest normalna i widać ją, porównując szacunek z `prompt_eval_count` w raporcie. Do stwierdzenia „prompt jest dwa razy za duży" ta dokładność w zupełności wystarcza.
 
 ## Dobre praktyki
 

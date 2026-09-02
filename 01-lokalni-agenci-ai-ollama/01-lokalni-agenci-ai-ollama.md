@@ -277,6 +277,22 @@ Odpowiedź to `HTTP 200`, a w niej `"prompt_eval_count": 258` — czyli z ~7000 
 
 Wypada to, co najstarsze, czyli początek promptu — a tam siedzą instrukcja systemowa i definicje narzędzi. Dlatego zbyt małe okno boli najbardziej przy pracy agentowej: opisy narzędzi, fragmenty z RAG-a i przywołane fakty z pamięci potrafią zająć kilka tysięcy tokenów, zanim padnie pierwsze pytanie. Agent, który po kilku krokach „zapomina", że ma narzędzia, i zaczyna opisywać, co *by* zrobił, zamiast wywołać funkcję, zwykle nie jest za głupi — po prostu nie mieści się w oknie.
 
+#### Na prompt przypada połowa okna
+
+Liczba 258 nie jest przypadkowa. Przy oknie 512 tokenów Ollama przyjęła dokładnie jego połowę. Powtórzenie pomiaru na kilku oknach daje ten sam wynik — poniżej `llama3.2` i `qwen2.5-coder:14b`, ten sam wypełniacz, zawsze dłuższy niż okno:
+
+| `num_ctx` | Przyjęte tokeny promptu |
+|---|---|
+| 512 | 258 |
+| 2 048 | 1 026 |
+| 4 096 | 2 050 |
+| 8 192 | 4 098 |
+| 16 384 | 8 194 |
+
+**Na prompt możesz liczyć na połowę okna, nie na całe.** Druga połowa jest zarezerwowana na odpowiedź modelu i nie da się jej odzyskać. W szczególności nie pomaga tu `num_predict`, czyli parametr od długości odpowiedzi — przy `num_ctx` równym 8192 wynik jest identyczny dla `num_predict` 512 i 4096. Ollama dzieli okno na pół niezależnie od tego, ile miejsca na odpowiedź faktycznie zamówisz.
+
+Praktyczna konsekwencja: **deklarowane okno dziel przez dwa, zanim policzysz, czy Twój prompt się zmieści.** Okno 4k to 2k tokenów na prompt, czyli mniej więcej 5 kB tekstu. Okno 16k daje 8k na prompt — i dopiero to jest rozmiar, w którym mieści się instrukcja systemowa, kilka definicji narzędzi i fragmenty z RAG-a naraz.
+
 #### Jak je zmienić
 
 **Na jedno zapytanie** — pole `options` w API:
@@ -317,7 +333,7 @@ models:
       contextLength: 16384
 ```
 
-> **Zasada praktyczna:** 4k tokenów wystarcza do rozmowy o pojedynczej funkcji. Do pracy z `@codebase`, narzędziami i pamięcią celuj w 16k lub więcej — o ile pamięć na to pozwala. Po każdej zmianie sprawdź `ollama ps`: jeśli w kolumnie `PROCESSOR` pojawi się udział CPU, okno jest za duże dla Twojej karty i model właśnie zwolnił.
+> **Zasada praktyczna:** licz połowę tego, co ustawisz. 4k okna to 2k tokenów na prompt — wystarczy do rozmowy o pojedynczej funkcji. Do pracy z `@codebase`, narzędziami i pamięcią celuj w 16k lub więcej, bo dopiero to daje 8k realnego miejsca na prompt — o ile pamięć na to pozwala. Po każdej zmianie sprawdź `ollama ps`: jeśli w kolumnie `PROCESSOR` pojawi się udział CPU, okno jest za duże dla Twojej karty i model właśnie zwolnił.
 
 ## Lokalne REST API
 
