@@ -181,6 +181,8 @@ def run_agent(question: str, rag_collection, memory, max_steps: int = 5) -> str:
 
 > **Windows:** `run_tests_tool` uruchamia `pytest` z `PATH`. Jeśli w konsoli działa u Ciebie tylko `py -m pytest`, zamień listę argumentów na `["py", "-m", "pytest", path, "-q"]`.
 
+> **Zanim uznasz, że model jest za słaby — sprawdź okno kontekstu.** W tej pętli do modelu trafia naraz instrukcja systemowa, schematy narzędzi, fragmenty z RAG-a, przywołane fakty z pamięci i cała dotychczasowa wymiana z narzędziami. To potrafi być kilka tysięcy tokenów, zanim padnie pierwsze pytanie, a każdy krok pętli tylko dokłada. Po przekroczeniu okna Ollama nie zgłasza błędu — po cichu odcina najstarszą część promptu, czyli właśnie instrukcję systemową i definicje narzędzi. Objaw jest mylący: agent po kilku krokach przestaje wywoływać funkcje i zaczyna opisywać, co *by* zrobił. Ustaw `num_ctx` na 16k lub więcej i sprawdź `ollama ps` — szczegóły w [odcinku 1](../01-lokalni-agenci-ai-ollama/01-lokalni-agenci-ai-ollama.md#okno-kontekstu--ile-model-naprawdę-pamięta).
+
 Zwróć uwagę na to, czego w tej pętli **nie ma**: zapisu do pamięci po każdej odpowiedzi. Destylowanie faktów (`consolidate_session` z odcinka 3) to osobne wywołanie modelu, więc robienie go przy każdym pytaniu podwaja koszt pracy agenta i zasypuje pamięć zdaniami typu "programista pytał o formatowanie daty". Fakty warto zbierać raz — na koniec sesji roboczej:
 
 ```python
@@ -211,6 +213,7 @@ Im więcej autonomii ma agent (własne narzędzia, dostęp do systemu plików, w
 | Obszar | Pytanie kontrolne |
 |---|---|
 | Model | Czy dobrany model (odcinek 1) ma wystarczającą jakość i mieści się w pamięci sprzętu? |
+| Okno kontekstu | Czy `num_ctx` pomieści instrukcję, schematy narzędzi, kontekst z RAG-a i całą pętlę wywołań? (`ollama ps`, kolumna `CONTEXT`) |
 | Wiedza o projekcie | Czy indeks RAG (odcinek 2) jest aktualizowany automatycznie po zmianach w repozytorium? |
 | Pamięć | Czy pamięć długoterminowa (odcinek 3) jest przypisana do konkretnego projektu i regularnie konsolidowana? |
 | Narzędzia | Czy narzędzia agenta działają na ograniczonych uprawnieniach i mają limit liczby kroków? |

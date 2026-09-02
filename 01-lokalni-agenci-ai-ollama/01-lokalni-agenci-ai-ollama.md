@@ -234,6 +234,91 @@ Poniższa tabela pokazuje orientacyjne minimalne wymagania pamięciowe (RAM dla 
 
 > **Wskazówka:** zawsze zaczynaj od najmniejszego modelu z danej kategorii zastosowania i sprawdzaj czas odpowiedzi (`ollama run <model> --verbose` pokazuje statystyki `eval rate`). Przechodź na większy model tylko wtedy, gdy jakość odpowiedzi jest niewystarczająca.
 
+### Okno kontekstu — ile model naprawdę pamięta
+
+Rozmiar modelu to nie jedyna liczba, która decyduje o zużyciu pamięci. Druga to **okno kontekstu** (`num_ctx`) — ile tokenów model widzi naraz: instrukcję systemową, całą dotychczasową rozmowę, wklejony kod i opisy narzędzi. Wszystko razem.
+
+Ollama dobiera je automatycznie na podstawie dostępnego VRAM-u, wybierając 4k, 32k albo 256k tokenów. To znaczy, że **ten sam model na dwóch komputerach dostanie różne okno** — i że na słabszej maszynie dostaniesz najmniejsze, nie mówiąc o tym ani słowa.
+
+Sprawdzisz to poleceniem `ollama ps`, w kolumnie `CONTEXT`:
+
+```text
+NAME               ID              SIZE      PROCESSOR    CONTEXT
+llama3.2:latest    a80c4f17acd5    4.2 GB    100% GPU     32768
+```
+
+#### Dlaczego to kosztuje pamięć
+
+Model musi trzymać w pamięci stan dla każdego tokenu w oknie (tzw. cache KV). Im większe okno, tym więcej pamięci — niezależnie od wielkości samego modelu. Ten sam `llama3.2` załadowany z różnym oknem:
+
+| Okno kontekstu | Zajętość pamięci |
+|---|---|
+| 8 192 tokeny | 2,7 GB |
+| 32 768 tokenów | 4,2 GB |
+
+Półtora giga różnicy przy tym samym modelu. Działa to w obie strony: jeśli masz zapas RAM-u lub VRAM-u, warto okno **powiększyć**; jeśli model ledwo się mieści i Ollama odciąża warstwy na CPU, jego **zmniejszenie** bywa szybszym rozwiązaniem niż schodzenie na mniejszy model.
+
+#### Co się dzieje po przekroczeniu okna
+
+Nie dostajesz błędu. To jest w tym najgorsze.
+
+Sprawdźmy to wprost — pytanie z hasłem na samym początku, długi wypełniacz w środku i celowo za małe okno:
+
+```bash
+curl http://localhost:11434/api/chat -d '{
+  "model": "llama3.2",
+  "stream": false,
+  "options": { "num_ctx": 512 },
+  "messages": [{ "role": "user", "content": "Zapamiętaj hasło: ALFA-7788. <tu 7000 tokenów wypełniacza> Jakie hasło podałem na początku?" }]
+}'
+```
+
+Odpowiedź to `HTTP 200`, a w niej `"prompt_eval_count": 258` — czyli z ~7000 tokenów model dostał 258. Reszta została po cichu odcięta, a on odpowiada, że żadnego hasła nie zna. Nie kłamie: naprawdę go nie widział.
+
+Wypada to, co najstarsze, czyli początek promptu — a tam siedzą instrukcja systemowa i definicje narzędzi. Dlatego zbyt małe okno boli najbardziej przy pracy agentowej: opisy narzędzi, fragmenty z RAG-a i przywołane fakty z pamięci potrafią zająć kilka tysięcy tokenów, zanim padnie pierwsze pytanie. Agent, który po kilku krokach „zapomina", że ma narzędzia, i zaczyna opisywać, co *by* zrobił, zamiast wywołać funkcję, zwykle nie jest za głupi — po prostu nie mieści się w oknie.
+
+#### Jak je zmienić
+
+**Na jedno zapytanie** — pole `options` w API:
+
+```bash
+curl http://localhost:11434/api/chat -d '{
+  "model": "qwen2.5-coder:7b",
+  "messages": [{ "role": "user", "content": "Cześć" }],
+  "options": { "num_ctx": 16384 }
+}'
+```
+
+**Na stałe, dla własnego wariantu modelu** — parametr w `Modelfile`. To ta sama technika, którą niżej wykorzystamy do zaszycia instrukcji po polsku:
+
+```dockerfile
+FROM qwen2.5-coder:7b
+PARAMETER num_ctx 16384
+SYSTEM "Jesteś asystentem programisty. Odpowiadaj po polsku."
+```
+
+```bash
+ollama create qwen-pl -f Modelfile
+ollama show qwen-pl --parameters   # kontrola: powinno wypisać num_ctx 16384
+```
+
+**Globalnie, dla całego serwera** — zmienna `OLLAMA_CONTEXT_LENGTH` (patrz [dodatek o zmiennych środowiskowych](#inne-przydatne-zmienne-środowiskowe)).
+
+**W Continue** — okno ustawia się osobno dla każdego modelu, bo wtyczka przycina kontekst po swojej stronie, zanim wyśle zapytanie:
+
+```yaml
+models:
+  - name: Qwen Coder 7B
+    provider: ollama
+    model: qwen2.5-coder:7b
+    apiBase: http://localhost:11434
+    roles: [chat, edit, apply]
+    defaultCompletionOptions:
+      contextLength: 16384
+```
+
+> **Zasada praktyczna:** 4k tokenów wystarcza do rozmowy o pojedynczej funkcji. Do pracy z `@codebase`, narzędziami i pamięcią celuj w 16k lub więcej — o ile pamięć na to pozwala. Po każdej zmianie sprawdź `ollama ps`: jeśli w kolumnie `PROCESSOR` pojawi się udział CPU, okno jest za duże dla Twojej karty i model właśnie zwolnił.
+
 ## Lokalne REST API
 
 Najważniejszą cechą Ollamy z perspektywy budowy agentów jest lokalne API HTTP. Przykładowe wywołanie:
@@ -484,7 +569,7 @@ ollama run qwen2.5-coder:7b
 >>> Explain what a race condition is.
 ```
 
-Instrukcja obowiązuje do końca sesji. Jeśli chcesz mieć ją na stałe, zbuduj własny wariant modelu `Modelfile`-em (`FROM qwen2.5-coder:7b` + `SYSTEM "..."`, a potem `ollama create qwen-pl -f Modelfile`) albo podaj ją w każdym zapytaniu przez API — jak niżej.
+Instrukcja obowiązuje do końca sesji. Jeśli chcesz mieć ją na stałe, zbuduj własny wariant modelu `Modelfile`-em (`FROM qwen2.5-coder:7b` + `SYSTEM "..."`, a potem `ollama create qwen-pl -f Modelfile`) albo podaj ją w każdym zapytaniu przez API — jak niżej. Przy okazji budowania własnego wariantu warto od razu ustawić w nim okno kontekstu — patrz [„Okno kontekstu"](#okno-kontekstu--ile-model-naprawdę-pamięta).
 
 Ten sam efekt w lokalnym API:
 
@@ -628,6 +713,7 @@ Pamiętaj, aby przy zmianie hosta lub portu zaktualizować `base_url` / `apiBase
 | Zmienna | Opis |
 |---|---|
 | `OLLAMA_HOST` | Adres i port nasłuchu serwera (domyślnie `127.0.0.1:11434`) |
+| `OLLAMA_CONTEXT_LENGTH` | Domyślne okno kontekstu dla modeli bez własnego `num_ctx`. Bez niej Ollama wybiera 4k, 32k albo 256k tokenów w zależności od VRAM-u (patrz [„Okno kontekstu"](#okno-kontekstu--ile-model-naprawdę-pamięta)) |
 | `OLLAMA_MODELS` | Ścieżka do katalogu przechowującego pobrane modele |
 | `OLLAMA_KEEP_ALIVE` | Czas, przez jaki model pozostaje załadowany w pamięci po ostatnim zapytaniu (np. `5m`, `24h`, `-1` = bez wyładowania) |
 | `OLLAMA_NUM_PARALLEL` | Liczba równoległych zapytań obsługiwanych przez jeden załadowany model |
