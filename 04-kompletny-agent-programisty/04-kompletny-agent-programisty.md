@@ -11,7 +11,7 @@ verified: 2026-09-02
   <img src="../01-lokalni-agenci-ai-ollama/images/ollama-logo.png" alt="Ollama" width="140"/>
 </p>
 
-> Seria szkoleniowa: **Lokalni agenci AI dla programistów** — odcinek 4 (ostatni)
+> Seria szkoleniowa: **Lokalni agenci AI dla programistów** — odcinek 4
 
 > **Dla początkujących:** to odcinek podsumowujący całą serię. Jeśli czytasz go jako pierwszy — najpierw zajrzyj do [odcinka 1](../01-lokalni-agenci-ai-ollama/01-lokalni-agenci-ai-ollama.md) (instalacja Ollamy), [odcinka 2](../02-lokalny-rag-baza-wiedzy/02-lokalny-rag-baza-wiedzy.md) (baza wiedzy projektu) i [odcinka 3](../03-pamiec-dlugoterminowa-agenta/03-pamiec-dlugoterminowa-agenta.md) (pamięć długoterminowa). Tutaj pokazujemy, jak te elementy współpracują ze sobą jako jedna całość — oraz najprostszą ścieżkę, by zacząć **bez pisania kodu**.
 
@@ -48,14 +48,14 @@ Narzędzia takie jak **Continue**, **Cline** czy **ProxyAI** (opisane w odcinku 
 
 - tool calling — wbudowane narzędzia do czytania/edycji plików, uruchamiania poleceń,
 - RAG dla kodu projektu — `@codebase`, `@docs` (odcinek 2),
-- pamięć — plik reguł (`rules:` w Continue, opisany w odcinku 3), a niektóre narzędzia dodają też pamięć sesji.
+- pamięć — plik reguł `rules.md` w repozytorium (opisany w odcinku 3), a niektóre narzędzia dodają też pamięć sesji.
 
 **Checklist szybkiego startu (5–10 minut, bez kodowania):**
 
 - [ ] Ollama zainstalowana i uruchomiona (odcinek 1).
 - [ ] Pobrany model czatu (`ollama pull qwen2.5-coder:7b`) i model embeddingowy (`ollama pull nomic-embed-text`).
 - [ ] Wtyczka Continue/Cline zainstalowana w IDE, skonfigurowana na `http://localhost:11434`.
-- [ ] Dodany plik reguł projektu (`.agent-memory/project-rules.md` lub podobny) podpięty w `config.yaml`.
+- [ ] Dodany plik reguł projektu (`rules.md` w repozytorium — Continue wczytuje go sam, patrz odcinek 3).
 - [ ] Włączony kontekst `@codebase` do pytań o istniejący kod.
 
 Dla wielu zespołów to w zupełności wystarczający, w pełni lokalny "agent programisty" — bez pisania jednej linijki kodu integracyjnego.
@@ -164,22 +164,37 @@ def run_agent(question: str, rag_collection, memory, max_steps: int = 5) -> str:
 
         tool_calls = message.get("tool_calls")
         if not tool_calls:
-            # Model zakończył zadanie — zwracamy ostateczną odpowiedź
-            final_answer = message["content"]
-            memory.consolidate_session(f"Pytanie: {question}\nOdpowiedź: {final_answer}")
-            return final_answer
+            # Model zakończył zadanie — zwracamy ostateczną odpowiedź.
+            return message["content"]
 
         for call in tool_calls:
             name = call["function"]["name"]
             args = call["function"].get("arguments", {})
             tool_fn = TOOL_IMPLEMENTATIONS.get(name)
             result = tool_fn(**args) if tool_fn else f"Nieznane narzędzie: {name}"
-            messages.append({"role": "tool", "content": result})
+            # `tool_name` mówi modelowi, do którego wywołania odnosi się wynik.
+            # Gdy w jednym kroku poprosił o dwa narzędzia, bez tego pola musi zgadywać.
+            messages.append({"role": "tool", "tool_name": name, "content": result})
 
     return "Agent nie zakończył zadania w limicie kroków — sprawdź logi rozmowy."
 ```
 
-To jest szkielet **pełnego agenta programisty**: pytanie trafia do modelu razem z kontekstem z RAG i pamięci, model decyduje, czy potrzebuje wykonać narzędzie (np. uruchomić testy), a po zakończeniu zadania kluczowe ustalenia trafiają z powrotem do pamięci długoterminowej — dokładnie tak, jak na diagramie na początku artykułu.
+> **Windows:** `run_tests_tool` uruchamia `pytest` z `PATH`. Jeśli w konsoli działa u Ciebie tylko `py -m pytest`, zamień listę argumentów na `["py", "-m", "pytest", path, "-q"]`.
+
+Zwróć uwagę na to, czego w tej pętli **nie ma**: zapisu do pamięci po każdej odpowiedzi. Destylowanie faktów (`consolidate_session` z odcinka 3) to osobne wywołanie modelu, więc robienie go przy każdym pytaniu podwaja koszt pracy agenta i zasypuje pamięć zdaniami typu "programista pytał o formatowanie daty". Fakty warto zbierać raz — na koniec sesji roboczej:
+
+```python
+# W trakcie pracy zbieramy tylko przebieg sesji…
+transcript = []
+for question in ["Gdzie liczymy VAT?", "Dodaj test dla ujemnej ceny w koszyku"]:
+    answer = run_agent(question, rag_collection, memory)
+    transcript.append(f"Pytanie: {question}\nOdpowiedź: {answer}")
+
+# …a trwałe ustalenia destylujemy z niej jednorazowo, po zakończeniu pracy.
+memory.consolidate_session("\n\n".join(transcript))
+```
+
+To jest szkielet **pełnego agenta programisty**: pytanie trafia do modelu razem z kontekstem z RAG i pamięci, model decyduje, czy potrzebuje wykonać narzędzie (np. uruchomić testy), a po zakończeniu sesji kluczowe ustalenia trafiają z powrotem do pamięci długoterminowej — dokładnie tak, jak na diagramie na początku artykułu.
 
 ## Bezpieczeństwo pracy agenta
 

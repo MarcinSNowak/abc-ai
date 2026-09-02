@@ -13,6 +13,15 @@ verified: 2026-09-02
 
 > Seria szkoleniowa: **Lokalni agenci AI dla programistów** — odcinek 1
 
+> **Dla początkujących:** to pierwszy odcinek serii i zakładamy tylko tyle, że potrafisz otworzyć terminal (macOS/Linux) albo PowerShell (Windows). Najkrótsza droga do efektu prowadzi przez [instalację](#instalacja-ollama) i [pierwszy model](#pobieranie-i-uruchamianie-pierwszego-modelu) — około 15 minut, z czego większość to pobieranie modelu. Tabele z doborem modeli, konfigurację IDE i strojenie serwera możesz przeczytać później; nie są potrzebne, żeby zacząć.
+
+> **Krótkie wyjaśnienie pojęć**, które pojawiają się w tym odcinku:
+> - **Model językowy (LLM)** — program wytrenowany na ogromnej ilości tekstu, który przewiduje dalszy ciąg tego, co dostał na wejściu. Stąd bierze się zarówno pisanie kodu, jak i odpowiadanie na pytania.
+> - **Inferencja** — samo uruchomienie modelu, czyli liczenie odpowiedzi. Zajmuje się tym procesor albo karta graficzna i to od niego zależy, jak długo czekasz na tekst.
+> - **Prompt** — to, co wysyłasz do modelu: pytanie, polecenie, fragment kodu.
+> - **Kontekst** — wszystko, co model widzi w danym zapytaniu (prompt plus wcześniejsza część rozmowy). Jest ograniczony, więc bardzo długie rozmowy zaczynają modelowi „wypadać" z pamięci.
+> - **Agent** — model wpięty w pętlę: dostaje zadanie, może sięgnąć po narzędzie (odczytać plik, uruchomić polecenie), zobaczyć wynik i dopiero wtedy odpowiedzieć. Najprostszego takiego agenta budujemy pod koniec tego odcinka.
+
 ## Wprowadzenie
 
 Coraz więcej zespołów programistycznych chce korzystać z modeli językowych (LLM) bez wysyłania kodu i danych do zewnętrznych chmur. Odpowiedzią na tę potrzebę jest uruchamianie modeli **lokalnie**, na własnym komputerze lub serwerze. W tym odcinku pokażemy, jak przygotować środowisko lokalne do pracy z agentami AI w oparciu o **Ollama** — jedno z najpopularniejszych narzędzi do uruchamiania modeli LLM offline.
@@ -42,10 +51,11 @@ flowchart LR
 
 Zanim zaczniemy, upewnij się, że posiadasz:
 
-- System operacyjny: macOS, Linux lub Windows (WSL2 zalecane).
+- System operacyjny: **Windows 10/11, macOS lub Linux**. Na Windows instalujesz zwykłą aplikację `.exe` i pracujesz w PowerShell — WSL2 jest potrzebne tylko wtedy, gdy kod, nad którym pracujesz, i tak żyje w WSL. Wtedy zainstaluj Ollamę **wewnątrz** WSL, według instrukcji dla Linuksa.
 - Minimum 8 GB RAM (16 GB+ zalecane dla większych modeli).
 - Wolne miejsce na dysku: 5–20 GB w zależności od wybranych modeli.
-- Opcjonalnie: karta graficzna z obsługą CUDA/Metal dla przyspieszenia inferencji (nie jest wymagana — Ollama działa również na CPU).
+- Opcjonalnie: karta graficzna z obsługą CUDA (NVIDIA) lub Metal (Apple Silicon) dla przyspieszenia inferencji — nie jest wymagana, Ollama działa również na samym procesorze.
+- Opcjonalnie: **Python 3.10+**, jeśli chcesz przejść przez przykłady kodu z sekcji o REST API i o budowie agenta. Do wcześniejszych kroków nie jest potrzebny.
 
 ## Instalacja Ollama
 
@@ -65,7 +75,9 @@ curl -fsSL https://ollama.com/install.sh | sh
 
 ### Windows
 
-Pobierz i uruchom instalator `.exe` ze strony [ollama.com/download](https://ollama.com/download). Po instalacji Ollama uruchamia się jako usługa w tle.
+Pobierz i uruchom instalator `.exe` ze strony [ollama.com/download](https://ollama.com/download). Po instalacji Ollama siedzi w zasobniku systemowym (obok zegara) i startuje razem z zalogowaniem do systemu — nie jest to usługa Windows, tylko zwykła aplikacja użytkownika.
+
+Polecenia z tego odcinka wpisujesz w **PowerShell**: klawisz `Win`, wpisz „PowerShell", `Enter`. Nie potrzebujesz uprawnień administratora.
 
 ### Weryfikacja instalacji
 
@@ -73,11 +85,22 @@ Pobierz i uruchom instalator `.exe` ze strony [ollama.com/download](https://olla
 ollama --version
 ```
 
-Uruchomienie serwera (jeśli nie startuje automatycznie jako usługa):
+Sprawdź, czy serwer odpowiada:
+
+```bash
+curl http://localhost:11434
+# oczekiwana odpowiedź: Ollama is running
+```
+
+> **Windows:** w PowerShell `curl` jest aliasem na `Invoke-WebRequest` i zachowuje się inaczej niż narzędzie znane z Linuksa — w szczególności nie rozumie przełącznika `-d`. Windows 10 i 11 mają jednak w komplecie prawdziwego curla, więc we wszystkich przykładach w tym odcinku wpisuj **`curl.exe`** zamiast `curl`.
+
+Jeśli dostałeś odpowiedź „Ollama is running", środowisko jest gotowe — możesz przejść od razu do pobrania pierwszego modelu. Jeśli połączenie zostało odrzucone, uruchom serwer ręcznie:
 
 ```bash
 ollama serve
 ```
+
+> Gdy `ollama serve` kończy się błędem `address already in use`, to **nie jest awaria** — serwer już działa w tle. Ten i pozostałe problemy startowe zebraliśmy w aneksie [„Kiedy coś nie działa i jak dostroić serwer"](#kiedy-coś-nie-działa-i-jak-dostroić-serwer) na końcu odcinka.
 
 Domyślnie serwer nasłuchuje na `http://localhost:11434`.
 
@@ -93,92 +116,6 @@ sequenceDiagram
     T->>S: sprawdzenie API
     S-->>T: "Ollama is running"
     T-->>U: potwierdzenie działania serwera
-```
-
-### Rozwiązywanie problemów przy starcie serwera
-
-#### Błąd: `bind: address already in use`
-
-Po instalacji Ollama najczęściej rejestruje się jako **usługa systemowa** i uruchamia serwer automatycznie w tle (na macOS jako `launchd` agent, na Linuksie jako usługa `systemd`, na Windows jako usługa w tle). W efekcie ręczne wywołanie `ollama serve` kończy się błędem:
-
-```text
-Error: listen tcp 127.0.0.1:11434: bind: address already in use
-```
-
-To nie jest awaria — oznacza to, że serwer **już działa** w tle. Nie trzeba uruchamiać go drugi raz.
-
-**Jak to zweryfikować:**
-
-```bash
-# sprawdzenie, czy API odpowiada
-curl http://localhost:11434
-
-# sprawdzenie procesu nasłuchującego na porcie (macOS/Linux)
-lsof -i :11434
-```
-
-Jeśli `curl` zwróci `Ollama is running`, środowisko jest gotowe do pracy i można pominąć krok `ollama serve`.
-
-**Zarządzanie usługą Ollama w zależności od systemu:**
-
-```bash
-# macOS (Homebrew services)
-brew services stop ollama
-brew services start ollama
-brew services restart ollama
-
-# Linux (systemd)
-sudo systemctl stop ollama
-sudo systemctl start ollama
-sudo systemctl status ollama
-
-# Windows
-# Usługę można zatrzymać/uruchomić w "Usługi" (services.msc) lub przez ikonę Ollama w zasobniku systemowym
-```
-
-Dopiero po zatrzymaniu usługi systemowej ręczne `ollama serve` (np. z dodatkowymi zmiennymi środowiskowymi) zadziała poprawnie.
-
-#### Konfiguracja adresu i portu serwera
-
-Jeśli port `11434` jest zajęty przez inną aplikację (nie przez Ollamę) lub chcemy udostępnić serwer w sieci lokalnej, adres nasłuchu można zmienić zmienną środowiskową `OLLAMA_HOST`:
-
-```bash
-# inny port na localhost
-OLLAMA_HOST=127.0.0.1:11500 ollama serve
-
-# nasłuch na wszystkich interfejsach (np. dostęp z innej maszyny w sieci)
-OLLAMA_HOST=0.0.0.0:11434 ollama serve
-```
-
-Pamiętaj, aby przy zmianie hosta/portu zaktualizować `base_url` we wszystkich klientach (curl, SDK OpenAI, wtyczki edytora).
-
-#### Inne przydatne zmienne środowiskowe
-
-| Zmienna | Opis |
-|---|---|
-| `OLLAMA_HOST` | Adres i port nasłuchu serwera (domyślnie `127.0.0.1:11434`) |
-| `OLLAMA_MODELS` | Ścieżka do katalogu przechowującego pobrane modele |
-| `OLLAMA_KEEP_ALIVE` | Czas, przez jaki model pozostaje załadowany w pamięci po ostatnim zapytaniu (np. `5m`, `24h`, `-1` = bez wyładowania) |
-| `OLLAMA_NUM_PARALLEL` | Liczba równoległych zapytań obsługiwanych przez jeden załadowany model |
-| `OLLAMA_MAX_LOADED_MODELS` | Maksymalna liczba modeli jednocześnie trzymanych w pamięci |
-
-Zmienne trwałe (przetrwają restart terminala) warto ustawić w pliku konfiguracyjnym powłoki (`~/.zshrc`, `~/.bashrc`) lub — w przypadku usługi systemowej na Linuksie — w pliku override systemd:
-
-```bash
-sudo systemctl edit ollama
-```
-
-```ini
-[Service]
-Environment="OLLAMA_HOST=0.0.0.0:11434"
-Environment="OLLAMA_KEEP_ALIVE=10m"
-```
-
-Po zapisaniu zmian należy przeładować konfigurację i zrestartować usługę:
-
-```bash
-sudo systemctl daemon-reload
-sudo systemctl restart ollama
 ```
 
 ## Pobieranie i uruchamianie pierwszego modelu
@@ -309,7 +246,15 @@ curl http://localhost:11434/api/generate -d '{
 }'
 ```
 
-Ollama udostępnia też endpoint kompatybilny z OpenAI (`/v1/chat/completions`), co pozwala podłączyć istniejące SDK OpenAI, wskazując jedynie inny `base_url`:
+> **Windows:** w PowerShell użyj `curl.exe` zamiast `curl` — apostrofy wokół JSON-a zostawiasz bez zmian.
+
+Ollama udostępnia też endpoint kompatybilny z OpenAI (`/v1/chat/completions`), co pozwala podłączyć istniejące SDK OpenAI, wskazując jedynie inny `base_url`. Ten i kolejny przykład wymagają Pythona 3.10+ oraz biblioteki OpenAI:
+
+```bash
+pip install openai
+```
+
+Na Windows, jeśli `pip` nie jest rozpoznawany, użyj `py -m pip install openai`.
 
 ```python
 from openai import OpenAI
@@ -387,7 +332,7 @@ if tool_calls:
 
 Ten prosty wzorzec — wywołanie narzędzia (*function/tool calling*) — jest fundamentem większości frameworków agentowych (LangChain, LlamaIndex, Semantic Kernel, Microsoft Agent Framework).
 
-> **Uwaga:** nie każdy model obsługuje *tool calling*. Do pracy z narzędziami polecane są modele oznaczone w bibliotece Ollamy jako wspierające funkcje, np. `llama3.1`, `qwen2.5`, `mistral-nemo`.
+> **Uwaga:** nie każdy model obsługuje *tool calling*. Do pracy z narzędziami nadają się modele oznaczone w bibliotece Ollamy jako wspierające funkcje — m.in. `llama3.2` (użyty w przykładzie powyżej), `llama3.1`, `qwen2.5`, `qwen2.5-coder` i `mistral-nemo`. Jeśli model narzędzi nie obsługuje, po prostu odpowie tekstem zamiast zwrócić `tool_calls`.
 
 ## Integracja z narzędziami programistycznymi
 
@@ -439,51 +384,61 @@ Typowy przepływ dodawania modelu do IDE wygląda tak:
 Sekcja `models` w konfiguracji nie jest ograniczona do jednego wpisu — to lista, do której można dodać dowolnie wiele pozycji, po jednej dla każdego modelu z `ollama list`. Dzięki temu w panelu czatu można później przełączać się między modelami z rozwijanej listy, bez edycji pliku konfiguracyjnego za każdym razem:
 
 ```yaml
+name: Lokalny asystent
+version: 1.0.0
+schema: v1
+
 models:
   - name: Qwen Coder 7B (kod ogólny)
     provider: ollama
     model: qwen2.5-coder:7b
     apiBase: http://localhost:11434
+    roles: [chat, edit, apply]
 
   - name: DeepSeek Coder 16B (duże refaktoryzacje)
     provider: ollama
     model: deepseek-coder-v2:16b
     apiBase: http://localhost:11434
+    roles: [chat, edit, apply]
 
   - name: Llama 3.1 8B (dokumentacja, ogólne pytania)
     provider: ollama
     model: llama3.1:8b
     apiBase: http://localhost:11434
+    roles: [chat]
 
-tabAutocompleteModel:
-  provider: ollama
-  model: qwen2.5-coder:1.5b
-  apiBase: http://localhost:11434
+  - name: Qwen Coder 1.5B (autouzupełnianie)
+    provider: ollama
+    model: qwen2.5-coder:1.5b
+    apiBase: http://localhost:11434
+    roles: [autocomplete]
 ```
 
-Każdy wpis pod `models` odpowiada jednemu modelowi z `ollama list` — pole `name` to dowolna etykieta wyświetlana w IDE, a pole `model` musi dokładnie odpowiadać nazwie z kolumny `NAME`. Model do autouzupełniania (`tabAutocompleteModel`) jest zawsze pojedynczy, niezależny od listy modeli czatu.
+Każdy wpis pod `models` odpowiada jednemu modelowi z `ollama list` — pole `name` to dowolna etykieta wyświetlana w IDE, a pole `model` musi dokładnie odpowiadać nazwie z kolumny `NAME`. O tym, do czego dany model służy, decyduje lista `roles`: `chat` to panel rozmowy, `autocomplete` to podpowiedzi w trakcie pisania, `edit` i `apply` to wprowadzanie zmian w kodzie. Model bez podanych ról dostaje domyślnie `[chat, edit, apply, summarize]`.
+
+> **Uwaga na starsze poradniki:** w sieci krąży wiele przykładów z kluczami `tabAutocompleteModel`, `systemMessage` czy `embeddingsProvider`. Pochodzą one ze starszego formatu `config.json`. W `config.yaml` te klucze nie istnieją — zostaną po cichu zignorowane, a Ty zobaczysz asystenta bez autouzupełniania i bez własnych instrukcji, nie wiedząc dlaczego.
 
 ### Konfiguracja VS Code (wtyczka Continue)
 
 1. Zainstaluj rozszerzenie **Continue** z Marketplace VS Code.
-2. Otwórz konfigurację Continue (`~/.continue/config.yaml` lub przez panel wtyczki) i dodaj model Ollama — najprostszy wariant z jednym modelem wygląda tak:
+2. Otwórz konfigurację Continue — plik `~/.continue/config.yaml`, a na Windows `%USERPROFILE%\.continue\config.yaml` — i dodaj model Ollama. Najprostszy wariant z jednym modelem czatu wygląda tak:
 
 ```yaml
+name: Lokalny asystent
+version: 1.0.0
+schema: v1
+
 models:
   - name: qwen2.5-coder (lokalny)
     provider: ollama
     model: qwen2.5-coder:7b
     apiBase: http://localhost:11434
-
-tabAutocompleteModel:
-  provider: ollama
-  model: qwen2.5-coder:1.5b
-  apiBase: http://localhost:11434
+    roles: [chat, edit, apply]
 ```
 
 Jeśli masz pobranych kilka modeli i chcesz przełączać się między nimi w panelu czatu, rozbuduj sekcję `models` zgodnie z przykładem powyżej ("Dodawanie kilku modeli jednocześnie").
 
-3. Zapisz plik — Continue automatycznie przeładuje konfigurację. Model do czatu i model do autouzupełniania (tab-autocomplete) mogą być różne — dla autouzupełniania warto wybrać mniejszy, szybszy model.
+3. Zapisz plik — Continue automatycznie przeładuje konfigurację. Model do czatu i model do autouzupełniania mogą być różne; dla autouzupełniania dodaj osobny wpis z `roles: [autocomplete]` i wybierz mniejszy, szybszy model (przykład powyżej, w sekcji o kilku modelach naraz).
 4. Zweryfikuj połączenie, zadając pytanie w panelu czatu Continue — powinno pojawić się połączenie do `localhost:11434`.
 
 > Alternatywą jest wtyczka **Cline**, konfigurowana analogicznie — w ustawieniach wybierz providera „Ollama” i wskaż `http://localhost:11434` oraz nazwę modelu.
@@ -518,11 +473,18 @@ Wielu polskich programistów chciałoby, żeby lokalny asystent odpowiadał po p
 
 ### Jak sprawić, żeby model odpowiadał po polsku
 
-Modele czatu zwykle **dopasowują język odpowiedzi do języka pytania** — jeśli zadasz pytanie po polsku, w większości przypadków odpowiedź też będzie po polsku. Aby to wymusić niezależnie od języka pytania (np. gdy w promptcie znajduje się fragment kodu po angielsku), warto dodać **instrukcję systemową**:
+Modele czatu zwykle **dopasowują język odpowiedzi do języka pytania** — jeśli zadasz pytanie po polsku, w większości przypadków odpowiedź też będzie po polsku. Aby to wymusić niezależnie od języka pytania (np. gdy w promptcie znajduje się fragment kodu po angielsku), warto dodać **instrukcję systemową**.
 
-```bash
-ollama run qwen2.5-coder:7b --system "Zawsze odpowiadaj w języku polskim, niezależnie od języka pytania. Kod i nazwy zmiennych pozostaw w oryginalnym języku."
+W sesji interaktywnej służy do tego polecenie `/set system`, wpisane już po uruchomieniu modelu:
+
+```text
+ollama run qwen2.5-coder:7b
+
+>>> /set system "Zawsze odpowiadaj w języku polskim, niezależnie od języka pytania. Kod i nazwy zmiennych pozostaw w oryginalnym języku."
+>>> Explain what a race condition is.
 ```
+
+Instrukcja obowiązuje do końca sesji. Jeśli chcesz mieć ją na stałe, zbuduj własny wariant modelu `Modelfile`-em (`FROM qwen2.5-coder:7b` + `SYSTEM "..."`, a potem `ollama create qwen-pl -f Modelfile`) albo podaj ją w każdym zapytaniu przez API — jak niżej.
 
 Ten sam efekt w lokalnym API:
 
@@ -538,19 +500,24 @@ response = client.chat.completions.create(
 
 ### Konfiguracja języka polskiego w IDE (Continue)
 
-W konfiguracji Continue (`~/.continue/config.yaml`) można ustawić globalną instrukcję systemową (`systemMessage`), która obowiązuje we wszystkich odpowiedziach czatu — niezależnie od tego, w jakim języku napisany jest kod czy komentarz w pytaniu:
+W konfiguracji Continue (`~/.continue/config.yaml`, na Windows `%USERPROFILE%\.continue\config.yaml`) taką stałą instrukcję zapisuje się jako **regułę**. Reguły są doklejane do wiadomości systemowej przy każdym zapytaniu, więc obowiązują niezależnie od tego, w jakim języku napisany jest kod czy komentarz w pytaniu:
 
 ```yaml
-systemMessage: >
-  Jesteś asystentem programisty. Odpowiadaj zawsze w języku polskim,
-  zachowując precyzyjną terminologię techniczną. Fragmenty kodu, nazwy
-  zmiennych, funkcji i komunikaty błędów pozostawiaj w oryginalnym języku.
+name: Lokalny asystent
+version: 1.0.0
+schema: v1
+
+rules:
+  - Jesteś asystentem programisty. Odpowiadaj zawsze w języku polskim,
+    zachowując precyzyjną terminologię techniczną. Fragmenty kodu, nazwy
+    zmiennych, funkcji i komunikaty błędów pozostawiaj w oryginalnym języku.
 
 models:
   - name: Qwen Coder 7B (PL)
     provider: ollama
     model: qwen2.5-coder:7b
     apiBase: http://localhost:11434
+    roles: [chat, edit, apply]
 ```
 
 W JetBrains (Continue/ProxyAI) oraz w Android Studio analogiczne pole nazywa się zwykle **"Custom instructions"** lub **"System prompt"** w ustawieniach wtyczki — działa identycznie: raz zapisana instrukcja obowiązuje we wszystkich kolejnych rozmowach z asystentem.
@@ -568,10 +535,113 @@ W JetBrains (Continue/ProxyAI) oraz w Android Studio analogiczne pole nazywa si�
 
 ### Dobre praktyki przy pracy wielojęzycznej
 
-1. **Ustal jeden standard w zespole** — np. "kod i commity po angielsku, komunikacja z asystentem i komentarze wyjaśniające po polsku" — i zapisz tę zasadę w `systemMessage`/"custom instructions" wtyczki.
+1. **Ustal jeden standard w zespole** — np. "kod i commity po angielsku, komunikacja z asystentem i komentarze wyjaśniające po polsku" — i zapisz tę zasadę jako regułę (`rules:` w Continue, „custom instructions" w ProxyAI).
 2. **Testuj model na rzeczywistych, technicznych zdaniach po polsku** — mniejsze modele (1.5–3B) częściej popełniają błędy gramatyczne lub mieszają języki niż modele 7B+.
 3. **Nie polegaj na tłumaczeniu nazw technicznych** — dobrze skonfigurowany prompt systemowy powinien jawnie instruować model, by zostawiał nazwy zmiennych, funkcji, komunikatów błędów i bibliotek w oryginalnym (zwykle angielskim) brzmieniu.
 4. **W autouzupełnianiu (tab-autocomplete) zostaw model bez wymuszania języka** — sugestie kodu i tak są w większości w języku angielskim (nazwy, konwencje), a wymuszanie polskiego w tym kontekście nie ma sensu; instrukcja systemowa dotyczy głównie panelu czatu.
+
+## Kiedy coś nie działa i jak dostroić serwer
+
+Tę sekcję czyta się wtedy, gdy coś nie zadziałało — albo później, gdy chcesz zmienić domyślne ustawienia. Do pierwszego uruchomienia modelu nie jest potrzebna.
+
+### Błąd `bind: address already in use`
+
+Po instalacji Ollama startuje sama: na Windows i macOS jako aplikacja uruchamiana przy logowaniu (ikona w zasobniku systemowym / na pasku menu), a na Linuksie jako usługa `systemd`. Ręczne `ollama serve` kończy się wtedy błędem:
+
+```text
+Error: listen tcp 127.0.0.1:11434: bind: address already in use
+```
+
+To nie jest awaria — oznacza, że serwer **już działa**. Nie trzeba uruchamiać go drugi raz.
+
+**Jak to zweryfikować:**
+
+```bash
+# czy API odpowiada (na Windows: curl.exe)
+curl http://localhost:11434
+
+# kto zajmuje port — macOS / Linux
+lsof -i :11434
+```
+
+```powershell
+# kto zajmuje port — Windows (PowerShell)
+Get-Process -Id (Get-NetTCPConnection -LocalPort 11434).OwningProcess
+```
+
+Jeśli `curl` zwróci `Ollama is running`, środowisko jest gotowe i krok `ollama serve` można pominąć.
+
+### Zatrzymywanie i uruchamianie Ollamy
+
+```bash
+# macOS (instalacja przez Homebrew)
+brew services stop ollama
+brew services start ollama
+brew services restart ollama
+
+# Linux (systemd)
+sudo systemctl stop ollama
+sudo systemctl start ollama
+sudo systemctl status ollama
+```
+
+Na **Windows** — a także na **macOS, jeśli instalowałeś z instalatora, a nie przez Homebrew** — Ollama nie jest usługą systemową, tylko zwykłą aplikacją użytkownika. Zamykasz ją klikając jej ikonę w zasobniku systemowym (Windows) lub na pasku menu (macOS) i wybierając wyjście, a uruchamiasz z menu Start / Launchpada. Autostart przy logowaniu wyłączysz w Menedżerze zadań → zakładka **Aplikacje autostartu** (Windows) albo w Ustawieniach systemu → **Elementy logowania** (macOS).
+
+Dopiero po zamknięciu działającej instancji ręczne `ollama serve` (np. z dodatkowymi zmiennymi środowiskowymi) zadziała poprawnie.
+
+### Zmiana adresu i portu serwera
+
+Jeśli port `11434` jest zajęty przez inną aplikację (nie przez Ollamę) lub chcesz udostępnić serwer w sieci lokalnej, adres nasłuchu ustawia zmienna środowiskowa `OLLAMA_HOST`. Sposób jej ustawienia to jedna z niewielu rzeczy, które naprawdę różnią się między systemami.
+
+```bash
+# macOS / Linux — jednorazowo, dla tego uruchomienia
+OLLAMA_HOST=127.0.0.1:11500 ollama serve   # inny port na localhost
+OLLAMA_HOST=0.0.0.0:11434 ollama serve     # nasłuch na wszystkich interfejsach
+```
+
+```powershell
+# Windows (PowerShell) — jednorazowo, dla tej sesji terminala
+$env:OLLAMA_HOST = "0.0.0.0:11434"
+ollama serve
+```
+
+> Zapis `ZMIENNA=wartość polecenie`, znany z Linuksa i macOS, **w PowerShell nie działa**. To jeden z najczęstszych powodów, dla których przepisany wprost „linuksowy" przykład kończy się na Windows błędem.
+
+Żeby ustawienie przetrwało restart:
+
+- **Windows** — zamknij Ollamę z zasobnika, otwórz Ustawienia (Windows 11) lub Panel sterowania (Windows 10), wyszukaj „zmienne środowiskowe", wybierz **Edytuj zmienne środowiskowe dla swojego konta**, dodaj zmienną użytkownika i uruchom Ollamę ponownie z menu Start. Ollama czyta zmienne użytkownika i systemowe przy starcie.
+- **macOS (aplikacja z instalatora)** — `launchctl setenv OLLAMA_HOST "0.0.0.0:11434"`, a potem zrestartuj Ollamę. Przy instalacji przez Homebrew wystarczy wpis w `~/.zshrc` i `brew services restart ollama`.
+- **Linux (systemd)** — `sudo systemctl edit ollama` i w sekcji `[Service]`:
+
+  ```ini
+  [Service]
+  Environment="OLLAMA_HOST=0.0.0.0:11434"
+  Environment="OLLAMA_KEEP_ALIVE=10m"
+  ```
+
+  Po zapisaniu: `sudo systemctl daemon-reload && sudo systemctl restart ollama`.
+
+Pamiętaj, aby przy zmianie hosta lub portu zaktualizować `base_url` / `apiBase` we wszystkich klientach (curl, SDK OpenAI, wtyczki edytora).
+
+### Inne przydatne zmienne środowiskowe
+
+| Zmienna | Opis |
+|---|---|
+| `OLLAMA_HOST` | Adres i port nasłuchu serwera (domyślnie `127.0.0.1:11434`) |
+| `OLLAMA_MODELS` | Ścieżka do katalogu przechowującego pobrane modele |
+| `OLLAMA_KEEP_ALIVE` | Czas, przez jaki model pozostaje załadowany w pamięci po ostatnim zapytaniu (np. `5m`, `24h`, `-1` = bez wyładowania) |
+| `OLLAMA_NUM_PARALLEL` | Liczba równoległych zapytań obsługiwanych przez jeden załadowany model |
+| `OLLAMA_MAX_LOADED_MODELS` | Maksymalna liczba modeli jednocześnie trzymanych w pamięci |
+
+### Gdzie leżą pobrane modele
+
+| System | Domyślna ścieżka |
+|---|---|
+| Windows | `C:\Users\<użytkownik>\.ollama\models` |
+| macOS | `~/.ollama/models` |
+| Linux | `/usr/share/ollama/.ollama/models` |
+
+Modele potrafią zająć kilkadziesiąt gigabajtów. Jeśli brakuje miejsca na dysku systemowym — a na laptopach z Windows to częsty przypadek — przenieś katalog zmienną `OLLAMA_MODELS`. Na Linuksie nadaj przy tym prawa użytkownikowi usługi: `sudo chown -R ollama:ollama <katalog>`.
 
 ## Dobre praktyki
 

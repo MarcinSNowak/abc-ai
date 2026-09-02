@@ -56,7 +56,7 @@ flowchart LR
 ## Wymagania wstępne
 
 - Ollama zainstalowana i uruchomiona (patrz [odcinek 1](../01-lokalni-agenci-ai-ollama/01-lokalni-agenci-ai-ollama.md)).
-- Python 3.10+ (do przykładów pipeline'u indeksowania).
+- Python 3.10+ (do przykładów pipeline'u indeksowania). Na Windows, jeśli `python` lub `pip` nie są rozpoznawane, użyj `py` i `py -m pip` — instalator Pythona z Microsoft Store nie zawsze dopisuje się do `PATH`.
 - Dodatkowe ~2–4 GB RAM/dysku na model embeddingowy i indeks wektorowy.
 - Opcjonalnie: Docker, jeśli zdecydujesz się na bazę wektorową uruchamianą jako kontener (np. Qdrant).
 
@@ -79,6 +79,8 @@ curl http://localhost:11434/api/embed -d '{
   "input": "Funkcja calculateInvoiceTotal sumuje pozycje faktury i dolicza VAT."
 }'
 ```
+
+> **Windows:** tak jak w odcinku 1 — w PowerShell wpisuj `curl.exe`, nie `curl`.
 
 Odpowiedź zawiera wektor liczb zmiennoprzecinkowych (np. 768 wymiarów dla `nomic-embed-text`), który zapisujemy w bazie wektorowej razem z oryginalnym fragmentem tekstu.
 
@@ -224,6 +226,8 @@ Dodaj `post-commit` lub `post-merge` hook w `.git/hooks/`, który uruchamia skry
 python scripts/index_knowledge_base.py --changed-only
 ```
 
+> **Windows:** ten plik działa także tutaj — Git for Windows uruchamia hooki własnym Bashem, więc nagłówek `#!/bin/sh` jest w porządku. Plik zapisz **bez rozszerzenia** (`post-merge`, nie `post-merge.sh`) i z zakończeniami linii LF.
+
 ### 3. Harmonogram (cron / zadanie CI)
 
 Dla większych repozytoriów lub gdy baza wiedzy obejmuje też zewnętrzne źródła (wiki, tracker zadań), warto uruchamiać pełne re-indeksowanie cyklicznie, np. co noc, jako zadanie w CI/CD lub `cron`:
@@ -232,6 +236,12 @@ Dla większych repozytoriów lub gdy baza wiedzy obejmuje też zewnętrzne źró
 # crontab -e
 0 2 * * * cd /ścieżka/do/projektu && python scripts/index_knowledge_base.py
 ```
+
+> **Windows:** odpowiednikiem `cron` jest **Harmonogram zadań** (Task Scheduler). Z wiersza poleceń to samo zadanie założysz jednolinijkowcem:
+>
+> ```powershell
+> schtasks /create /tn "Reindeks bazy wiedzy" /tr "py C:\projekty\moj-projekt\scripts\index_knowledge_base.py" /sc daily /st 02:00
+> ```
 
 ### 4. Wersjonowanie indeksu razem z gałęzią
 
@@ -252,21 +262,29 @@ Nie zawsze trzeba pisać własny pipeline — część wtyczek AI ma **wbudowan�
 Continue automatycznie indeksuje otwarty projekt i pozwala odwołać się do niego w czacie poleceniem `@codebase`, korzystając z lokalnego modelu embeddingowego skonfigurowanego w `config.yaml`:
 
 ```yaml
+name: Lokalny asystent
+version: 1.0.0
+schema: v1
+
 models:
   - name: Qwen Coder 7B
     provider: ollama
     model: qwen2.5-coder:7b
     apiBase: http://localhost:11434
+    roles: [chat, edit, apply]
 
-embeddingsProvider:
-  provider: ollama
-  model: nomic-embed-text
-  apiBase: http://localhost:11434
+  - name: Nomic Embed (indeksowanie projektu)
+    provider: ollama
+    model: nomic-embed-text
+    apiBase: http://localhost:11434
+    roles: [embed]
 
 context:
   - provider: codebase
   - provider: docs
 ```
+
+Model embeddingowy nie ma w `config.yaml` osobnego klucza — jest zwykłym wpisem na liście `models`, tyle że z rolą `embed` (starsze poradniki pokazują tu `embeddingsProvider` ze zdezaktualizowanego formatu `config.json`; patrz uwaga w [odcinku 1](../01-lokalni-agenci-ai-ollama/01-lokalni-agenci-ai-ollama.md#jak-dodać-zainstalowane-modele-do-konfiguracji-ide)).
 
 Po zapisaniu konfiguracji w panelu czatu można zapytać np. `@codebase Jak działa proces generowania faktury?` — Continue samodzielnie wyszuka najbardziej podobne fragmenty repozytorium (indeksowane lokalnie, przyrostowo, w tle) i doda je jako kontekst do zapytania.
 

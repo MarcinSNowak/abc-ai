@@ -89,7 +89,7 @@ Każdy projekt dostaje swoją kolekcję w bazie wektorowej (np. `pamiec-{project
 
 ## Implementacja: menedżer pamięci projektu
 
-> **Ta sekcja jest opcjonalna** i przeznaczona dla osób, które chcą zbudować własny mechanizm pamięci w kodzie (np. jako część większego, autorskiego agenta). Jeśli wystarcza Ci plik reguł z poprzedniej sekcji, możesz spokojnie przejść od razu do ["Dobre praktyki"](#dobre-praktyki).
+> **Ta sekcja jest opcjonalna** i przeznaczona dla osób, które chcą zbudować własny mechanizm pamięci w kodzie (np. jako część większego, autorskiego agenta). Jeśli szukasz najprostszego startu, pomiń ją i przejdź od razu do sekcji ["Pamięć proceduralna jako plik reguł w repozytorium"](#pamięć-proceduralna-jako-plik-reguł-w-repozytorium) — to te pięć minut, o których była mowa na początku odcinka. Do kodu poniżej możesz wrócić później.
 
 Poniższy przykład rozszerza pipeline z odcinka 2 o zapis i odczyt **dynamicznych faktów**, z prostym mechanizmem ważności (recency) i ekstrakcją faktów przez sam model LLM.
 
@@ -207,8 +207,10 @@ def recall_weighted(self, query: str, top_k: int = 5, recency_days: int = 90) ->
 
 Nie każdy fakt musi trafiać do bazy wektorowej. Ustalenia o charakterze **stałych zasad pracy** (konwencje kodowania, preferowane wzorce, rzeczy, o które agent ma zawsze pytać) najlepiej trzymać jako **czytelny dla człowieka plik Markdown w repozytorium** — analogicznie do plików `AGENTS.md` / `copilot-instructions.md` znanych z narzędzi AI dla programistów. Taki plik jest zawsze w pełni dołączany do kontekstu (bez potrzeby wyszukiwania semantycznego) i łatwo go code-review'ować jak każdą inną zmianę:
 
+Nazwa pliku ma znaczenie: Continue przeszukuje otwarty projekt i **automatycznie** wczytuje każdy plik nazwany `rules.md` — nie trzeba go nigdzie rejestrować. Wystarczy więc utworzyć `.agent-memory/rules.md`:
+
 ```markdown
-<!-- .agent-memory/project-rules.md -->
+<!-- .agent-memory/rules.md -->
 # Zasady pracy agenta AI dla tego projektu
 
 - Nowe repozytoria danych implementują interfejs `IRepository<T>` (ustalone 2026-08-15).
@@ -217,12 +219,17 @@ Nie każdy fakt musi trafiać do bazy wektorowej. Ustalenia o charakterze **sta�
 - Baza danych: PostgreSQL 16, migracje przez EF Core.
 ```
 
-W Continue plik reguł można podpiąć w `config.yaml`, aby był automatycznie dołączany do każdego zapytania:
+Zapisz plik, przeładuj okno edytora i gotowe — od tej chwili każde zapytanie do agenta zawiera te zasady.
+
+Krótkie reguły można też wpisać wprost w `config.yaml`, na liście `rules`:
 
 ```yaml
 rules:
-  - .agent-memory/project-rules.md
+  - Odpowiadaj po polsku, ale nazwy klas i metod zostawiaj po angielsku.
+  - Przy każdej zmianie w module płatności przypomnij o testach jednostkowych.
 ```
+
+> **Uwaga:** wpisy na liście `rules` to **treść reguły**, a nie ścieżka do pliku. `rules: - .agent-memory/rules.md` nie wczyta pliku — Continue potraktuje ten tekst dosłownie jako regułę o dziwnej treści. Plik podpina się przez samą nazwę `rules.md`, tak jak wyżej.
 
 **Podział obowiązków między oba mechanizmy:**
 
@@ -234,7 +241,7 @@ rules:
 ## Bezpieczeństwo i prywatność pamięci
 
 - **Nie zapisuj sekretów** — menedżer pamięci nie powinien nigdy zapamiętywać haseł, kluczy API ani tokenów, nawet jeśli pojawiły się w rozmowie przypadkiem. Warto dodać prosty filtr odrzucający fragmenty pasujące do wzorców sekretów przed zapisem.
-- **Kontroluj, co trafia do repozytorium** — jeśli plik `project-rules.md` lub baza `.agent-memory/` mają być współdzielone przez zespół, upewnij się, że nie zawierają danych osobowych ani wrażliwych informacji biznesowych.
+- **Kontroluj, co trafia do repozytorium** — jeśli plik `rules.md` lub baza `.agent-memory/` mają być współdzielone przez zespół, upewnij się, że nie zawierają danych osobowych ani wrażliwych informacji biznesowych.
 - **Cała pamięć pozostaje lokalna** — ponieważ zarówno embeddingi, jak i ekstrakcja faktów odbywają się przez lokalną Ollamę, żadne dane nie opuszczają maszyny/sieci firmowej — to jedna z głównych przewag tego podejścia nad rozwiązaniami chmurowymi.
 
 ## Dobre praktyki
