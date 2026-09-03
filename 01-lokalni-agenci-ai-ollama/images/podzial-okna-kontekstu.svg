@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 408" width="880" height="408" role="img" aria-labelledby="tytul opis">
+  <title id="tytul">Podział okna kontekstu w Ollamie</title>
+  <desc id="opis">Okno 8192 tokenów dzieli się na pół: 4096 tokenów na prompt i 4096 zarezerwowane na odpowiedź. Prompt dłuższy niż 4096 tokenów jest przycinany od najstarszej strony, czyli od instrukcji systemowej, bez zgłoszenia błędu. Pomiary: num_ctx 2048 daje 1026 przyjętych tokenów, 4096 daje 2050, 8192 daje 4098, 16384 daje 8194.</desc>
+
+  <defs>
+    <pattern id="ukos" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#cbd5e1" stroke-width="3"/>
+    </pattern>
+  </defs>
+
+  <style>
+    text { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    .tytul  { font-size: 20px; font-weight: 600; fill: #16213e; }
+    .podtyt { font-size: 13px; fill: #64748b; }
+    .sekcja { font-size: 12px; fill: #64748b; }
+    .wbelce { font-size: 14px; font-weight: 600; }
+    .uwaga  { font-size: 12.5px; fill: #334155; }
+    .stopka { font-size: 12px; fill: #64748b; }
+    .liczby { font-size: 12.5px; fill: #334155; font-variant-numeric: tabular-nums; }
+  </style>
+
+  <rect x="0.5" y="0.5" width="879" height="407" rx="12" fill="#f6f8f4" stroke="#e2e8f0"/>
+
+  <text class="tytul"  x="40" y="50">Okno kontekstu 8 192 tokenów</text>
+  <text class="podtyt" x="40" y="74">Ollama dzieli je na pół. To pomiar, nie zapis z dokumentacji.</text>
+
+  <!-- Wiersz 1: deklarowany podział -->
+  <text class="sekcja" x="40" y="114">Deklarowane okno</text>
+  <rect x="40"  y="126" width="399" height="46" rx="4" fill="#2a78d6"/>
+  <rect x="441" y="126" width="399" height="46" rx="4" fill="#cde2fb"/>
+  <text class="wbelce" x="239" y="155" text-anchor="middle" fill="#ffffff">prompt · 4 096</text>
+  <text class="wbelce" x="640" y="155" text-anchor="middle" fill="#334155">zarezerwowane na odpowiedź · 4 096</text>
+
+  <!-- Wiersz 2: prompt, który się nie mieści -->
+  <text class="sekcja" x="40" y="222">Prompt dłuższy niż budżet — przykład: 6 000 tokenów</text>
+  <rect x="40.5" y="234.5" width="185" height="45" rx="4" fill="url(#ukos)" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4 3"/>
+  <rect x="228"  y="234"   width="400" height="46" rx="4" fill="#2a78d6"/>
+  <text class="wbelce" x="133" y="263" text-anchor="middle" fill="#334155" font-size="13">ucięte · 1 904</text>
+  <text class="wbelce" x="428" y="263" text-anchor="middle" fill="#ffffff">dotarło do modelu · 4 096</text>
+
+  <line x1="133" y1="284" x2="133" y2="296" stroke="#94a3b8" stroke-width="1"/>
+  <text class="uwaga" x="40" y="314">Ucinane od najstarszej strony — a tam siedzi instrukcja systemowa. Ollama nie zgłasza błędu.</text>
+
+  <line x1="40" y1="340" x2="840" y2="340" stroke="#e2e8f0" stroke-width="1"/>
+  <text class="stopka" x="40" y="362">Zmierzone na llama3.2 i qwen2.5-coder:14b — num_ctx → przyjęte tokeny promptu:</text>
+  <text class="liczby" x="40" y="384" xml:space="preserve">2 048 → 1 026      ·      4 096 → 2 050      ·      8 192 → 4 098      ·      16 384 → 8 194</text>
+</svg>

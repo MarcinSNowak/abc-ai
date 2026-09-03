@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 496" width="880" height="496" role="img" aria-labelledby="tytul opis">
+  <title id="tytul">Co @codebase wysyła do modelu</title>
+  <desc id="opis">Przy oknie 8192 tokenów @codebase wysyła osiem fragmentów po 512 tokenów: dwa z plików ostatnio edytowanych, dwa z wyszukiwania pełnotekstowego i cztery z bazy wektorowej. Bez modelu embeddingowego cztery fragmenty z bazy wektorowej znikają, a Continue nie zgłasza błędu. Liczba fragmentów to minimum z 25 oraz okna kontekstu podzielonego przez 512 i przez 2.</desc>
+
+  <style>
+    text { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    .tytul  { font-size: 20px; font-weight: 600; fill: #16213e; }
+    .podtyt { font-size: 13px; fill: #64748b; }
+    .sekcja { font-size: 12px; fill: #64748b; }
+    .kafel  { font-size: 12px; font-weight: 600; fill: #ffffff; }
+    .pusty  { font-size: 12px; fill: #94a3b8; }
+    .legenda{ font-size: 12.5px; fill: #334155; }
+    .dodatek{ font-size: 12.5px; fill: #64748b; }
+    .uwaga  { font-size: 12.5px; fill: #334155; }
+    .mono   { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .stopka { font-size: 12px; fill: #64748b; }
+  </style>
+
+  <rect x="0.5" y="0.5" width="879" height="495" rx="12" fill="#f6f8f4" stroke="#e2e8f0"/>
+
+  <text class="tytul" x="40" y="50"><tspan class="mono">@codebase</tspan> przy oknie 8 192 tokenów</text>
+  <text class="podtyt" x="40" y="74">Model dostaje osiem fragmentów po 512 tokenów — nie repozytorium.</text>
+
+  <!-- Wiersz 1: pełny komplet -->
+  <text class="sekcja" x="40" y="116">Skąd pochodzi każdy fragment</text>
+  <g>
+    <rect x="40"     y="128" width="94.75" height="64" rx="4" fill="#2a78d6"/>
+    <rect x="140.75" y="128" width="94.75" height="64" rx="4" fill="#2a78d6"/>
+    <rect x="241.5"  y="128" width="94.75" height="64" rx="4" fill="#4a3aa7"/>
+    <rect x="342.25" y="128" width="94.75" height="64" rx="4" fill="#4a3aa7"/>
+    <rect x="443"    y="128" width="94.75" height="64" rx="4" fill="#5f9c2f"/>
+    <rect x="543.75" y="128" width="94.75" height="64" rx="4" fill="#5f9c2f"/>
+    <rect x="644.5"  y="128" width="94.75" height="64" rx="4" fill="#5f9c2f"/>
+    <rect x="745.25" y="128" width="94.75" height="64" rx="4" fill="#5f9c2f"/>
+    <text class="kafel" x="87.4"  y="165" text-anchor="middle">512</text>
+    <text class="kafel" x="188.1" y="165" text-anchor="middle">512</text>
+    <text class="kafel" x="288.9" y="165" text-anchor="middle">512</text>
+    <text class="kafel" x="389.6" y="165" text-anchor="middle">512</text>
+    <text class="kafel" x="490.4" y="165" text-anchor="middle">512</text>
+    <text class="kafel" x="591.1" y="165" text-anchor="middle">512</text>
+    <text class="kafel" x="691.9" y="165" text-anchor="middle">512</text>
+    <text class="kafel" x="792.6" y="165" text-anchor="middle">512</text>
+  </g>
+
+  <!-- Legenda -->
+  <g>
+    <rect x="40" y="216" width="12" height="12" rx="3" fill="#2a78d6"/>
+    <text class="legenda" x="60" y="226">Pliki ostatnio edytowane · 2</text>
+    <rect x="270" y="216" width="12" height="12" rx="3" fill="#4a3aa7"/>
+    <text class="legenda" x="290" y="226">Wyszukiwanie pełnotekstowe · 2</text>
+    <rect x="530" y="216" width="12" height="12" rx="3" fill="#5f9c2f"/>
+    <text class="legenda" x="550" y="226">Baza wektorowa · 4</text>
+    <text class="dodatek" x="40" y="250">Do tego mapa repozytorium — dokładana poza tym podziałem.</text>
+  </g>
+
+  <!-- Wiersz 2: bez modelu embeddingowego -->
+  <text class="sekcja" x="40" y="308">To samo pytanie, gdy w konfiguracji brakuje modelu z rolą <tspan class="mono">embed</tspan></text>
+  <g>
+    <rect x="40"     y="320" width="94.75" height="64" rx="4" fill="#2a78d6"/>
+    <rect x="140.75" y="320" width="94.75" height="64" rx="4" fill="#2a78d6"/>
+    <rect x="241.5"  y="320" width="94.75" height="64" rx="4" fill="#4a3aa7"/>
+    <rect x="342.25" y="320" width="94.75" height="64" rx="4" fill="#4a3aa7"/>
+    <text class="kafel" x="87.4"  y="357" text-anchor="middle">512</text>
+    <text class="kafel" x="188.1" y="357" text-anchor="middle">512</text>
+    <text class="kafel" x="288.9" y="357" text-anchor="middle">512</text>
+    <text class="kafel" x="389.6" y="357" text-anchor="middle">512</text>
+    <rect x="443.5"  y="320.5" width="93.75" height="63" rx="4" fill="none" stroke="#94a3b8" stroke-dasharray="4 3"/>
+    <rect x="544.25" y="320.5" width="93.75" height="63" rx="4" fill="none" stroke="#94a3b8" stroke-dasharray="4 3"/>
+    <rect x="645"    y="320.5" width="93.75" height="63" rx="4" fill="none" stroke="#94a3b8" stroke-dasharray="4 3"/>
+    <rect x="745.75" y="320.5" width="93.75" height="63" rx="4" fill="none" stroke="#94a3b8" stroke-dasharray="4 3"/>
+    <text class="pusty" x="490.4" y="357" text-anchor="middle">—</text>
+    <text class="pusty" x="591.1" y="357" text-anchor="middle">—</text>
+    <text class="pusty" x="691.9" y="357" text-anchor="middle">—</text>
+    <text class="pusty" x="792.6" y="357" text-anchor="middle">—</text>
+  </g>
+
+  <text class="uwaga" x="40" y="414">Połowa wyszukiwania po prostu znika. Bez błędu, bez ostrzeżenia — gorsze odpowiedzi i żadnej wskazówki dlaczego.</text>
+
+  <line x1="40" y1="442" x2="840" y2="442" stroke="#e2e8f0" stroke-width="1"/>
+  <text class="stopka" x="40" y="466">Liczba fragmentów wynika z jednej linijki w kodzie Continue:</text>
+  <text class="stopka mono" x="40" y="486" fill="#334155">liczba_fragmentów = min(25, okno_kontekstu / 512 / 2)</text>
+</svg>

@@ -293,6 +293,8 @@ Liczba 258 nie jest przypadkowa. Przy oknie 512 tokenów Ollama przyjęła dokł
 
 Praktyczna konsekwencja: **deklarowane okno dziel przez dwa, zanim policzysz, czy Twój prompt się zmieści.** Okno 4k to 2k tokenów na prompt, czyli mniej więcej 5 kB tekstu. Okno 16k daje 8k na prompt — i dopiero to jest rozmiar, w którym mieści się instrukcja systemowa, kilka definicji narzędzi i fragmenty z RAG-a naraz.
 
+![Okno kontekstu 8192 tokenów dzieli się na pół: 4096 na prompt i 4096 zarezerwowane na odpowiedź. Prompt dłuższy niż budżet jest przycinany od najstarszej strony, czyli od instrukcji systemowej, bez zgłoszenia błędu.](./images/podzial-okna-kontekstu.svg)
+
 #### Jak je zmienić
 
 **Na jedno zapytanie** — pole `options` w API:

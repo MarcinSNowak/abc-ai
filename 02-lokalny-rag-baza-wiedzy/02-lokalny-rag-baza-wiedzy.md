@@ -320,6 +320,8 @@ Druga niespodzianka: fragmenty nie pochodzą wyłącznie z bazy wektorowej. Cont
 
 Wynika stąd rzecz, która potrafi kosztować godzinę szukania: **`@codebase` działa również bez modelu embeddingowego**. Jeśli zapomnisz o wpisie z rolą `embed`, Continue po prostu pomija połowę wyszukiwania i odpowiada dalej — bez błędu, bez ostrzeżenia. Dostajesz gorsze odpowiedzi i żadnej wskazówki dlaczego. W kodzie jest nawet ostrzeżenie na ten temat, świadomie zakomentowane.
 
+![Przy oknie 8192 tokenów @codebase wysyła osiem fragmentów po 512 tokenów: dwa z plików ostatnio edytowanych, dwa z wyszukiwania pełnotekstowego i cztery z bazy wektorowej. Bez modelu z rolą embed cztery ostatnie znikają, a Continue nie zgłasza błędu.](./images/co-wysyla-codebase.svg)
+
 Praktyczny wniosek: jeśli `@codebase` daje słabe wyniki, najpierw sprawdź `ollama list`, czy model embeddingowy w ogóle jest pobrany, a potem czy ma w `config.yaml` rolę `embed`.
 
 ### Continue nadpisuje Twoje ustawienie okna kontekstu
