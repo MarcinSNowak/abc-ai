@@ -413,7 +413,7 @@ Najważniejsze są dwie liczby obok siebie: ile tokenów wysłano i ile Ollama f
 
 Na koniec skasuj linię z `apiBase: http://localhost:11435`, żeby Continue wróciło do rozmowy z Ollamą bezpośrednio.
 
-> **Uwaga o szacowaniu:** skrypt przelicza znaki na tokeny przez stałą 2,5, bo Ollama nie udostępnia endpointu tokenizacji (`/api/tokenize` zwraca 404). Dla mieszanki kodu i polszczyzny pomyłka rzędu 10–20% jest normalna i widać ją, porównując szacunek z `prompt_eval_count` w raporcie. Do stwierdzenia „prompt jest dwa razy za duży" ta dokładność w zupełności wystarcza.
+> **Uwaga o szacowaniu:** skrypt przelicza znaki na tokeny przez stałą 2,5, bo Ollama nie udostępnia endpointu tokenizacji (`/api/tokenize` zwraca 404). Skąd akurat 2,5 i dlaczego popularne „4 znaki na token" tu nie działa, wyjaśniamy w [odcinku 1, w sekcji o tokenach](../01-lokalni-agenci-ai-ollama/01-lokalni-agenci-ai-ollama.md#token--jednostka-w-której-liczy-się-wszystko). Dla mieszanki kodu i polszczyzny pomyłka rzędu 10–20% jest normalna i widać ją, porównując szacunek z `prompt_eval_count` w raporcie. Do stwierdzenia „prompt jest dwa razy za duży" ta dokładność w zupełności wystarcza.
 
 ## Dobre praktyki
 

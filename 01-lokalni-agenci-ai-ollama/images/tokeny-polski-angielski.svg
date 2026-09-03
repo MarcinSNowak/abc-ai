@@ -1,0 +1,209 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 392" width="880" height="392" role="img" aria-labelledby="tytul opis">
+  <title id="tytul">Koszt w tokenach: polski, angielski i kod</title>
+  <desc id="opis">Ten sam akapit zapisany po polsku zajmuje 76 tokenów przy 210 znakach, czyli 2,8 znaku na token. Po angielsku ta sama treść to 206 znaków i 41 tokenów, czyli 5,0 znaku na token. Próbka kodu w Pythonie: 166 znaków i 53 tokeny, czyli 3,1 znaku na token. Polski kosztuje około 1,8 raza więcej tokenów niż angielski. Pomiar na modelu llama3.2; qwen2.5-coder:14b daje 73, 40 i 52 tokeny.</desc>
+
+  <style>
+    text { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    .tytul   { font-size: 20px; font-weight: 600; fill: #16213e; }
+    .podtyt  { font-size: 13px; fill: #64748b; }
+    .sekcja  { font-size: 12px; fill: #64748b; }
+    .licznik { font-size: 13px; font-weight: 600; fill: #334155; font-variant-numeric: tabular-nums; }
+    .uwaga   { font-size: 12.5px; fill: #334155; }
+    .stopka  { font-size: 12px; fill: #64748b; }
+  </style>
+
+  <rect x="0.5" y="0.5" width="879" height="391" rx="12" fill="#f6f8f4" stroke="#e2e8f0"/>
+
+  <text class="tytul"  x="40" y="50">Ile tokenów kosztuje ten sam akapit</text>
+  <text class="podtyt" x="40" y="74">Każdy prostokąt to jeden token. Pierwsze dwa wiersze to ta sama treść w dwóch językach.</text>
+
+  <!-- polski -->
+  <text class="sekcja" x="40" y="112">polski · 210 znaków · 2,8 znaku na token</text>
+  <g>
+    <rect x="40" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="49" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="58" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="67" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="76" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="85" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="94" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="103" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="112" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="121" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="130" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="139" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="148" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="157" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="166" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="175" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="184" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="193" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="202" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="211" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="220" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="229" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="238" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="247" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="256" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="265" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="274" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="283" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="292" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="301" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="310" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="319" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="328" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="337" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="346" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="355" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="364" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="373" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="382" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="391" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="400" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="409" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="418" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="427" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="436" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="445" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="454" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="463" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="472" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="481" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="490" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="499" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="508" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="517" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="526" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="535" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="544" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="553" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="562" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="571" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="580" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="589" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="598" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="607" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="616" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="625" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="634" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="643" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="652" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="661" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="670" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="679" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="688" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="697" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="706" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+    <rect x="715" y="122" width="7.2" height="28" rx="1.5" fill="#2a78d6"/>
+  </g>
+  <text class="licznik" x="736.2" y="141">76 tokenów</text>
+  <!-- angielski -->
+  <text class="sekcja" x="40" y="182">angielski · 206 znaków · 5,0 znaku na token</text>
+  <g>
+    <rect x="40" y="192" width="7.2" height="28" rx="1.5" fill="#5f9c2f"/>
+    <rect x="49" y="192" width="7.2" height="28" rx="1.5" fill="#5f9c2f"/>
+    <rect x="58" y="192" width="7.2" height="28" rx="1.5" fill="#5f9c2f"/>
+    <rect x="67" y="192" width="7.2" height="28" rx="1.5" fill="#5f9c2f"/>
+    <rect x="76" y="192" width="7.2" height="28" rx="1.5" fill="#5f9c2f"/>
+    <rect x="85" y="192" width="7.2" height="28" rx="1.5" fill="#5f9c2f"/>
+    <rect x="94" y="192" width="7.2" height="28" rx="1.5" fill="#5f9c2f"/>
+    <rect x="103" y="192" width="7.2" height="28" rx="1.5" fill="#5f9c2f"/>
+    <rect x="112" y="192" width="7.2" height="28" rx="1.5" fill="#5f9c2f"/>
+    <rect x="121" y="192" width="7.2" height="28" rx="1.5" fill="#5f9c2f"/>
+    <rect x="130" y="192" width="7.2" height="28" rx="1.5" fill="#5f9c2f"/>
+    <rect x="139" y="192" width="7.2" height="28" rx="1.5" fill="#5f9c2f"/>
+    <rect x="148" y="192" width="7.2" height="28" rx="1.5" fill="#5f9c2f"/>
+    <rect x="157" y="192" width="7.2" height="28" rx="1.5" fill="#5f9c2f"/>
+    <rect x="166" y="192" width="7.2" height="28" rx="1.5" fill="#5f9c2f"/>
+    <rect x="175" y="192" width="7.2" height="28" rx="1.5" fill="#5f9c2f"/>
+    <rect x="184" y="192" width="7.2" height="28" rx="1.5" fill="#5f9c2f"/>
+    <rect x="193" y="192" width="7.2" height="28" rx="1.5" fill="#5f9c2f"/>
+    <rect x="202" y="192" width="7.2" height="28" rx="1.5" fill="#5f9c2f"/>
+    <rect x="211" y="192" width="7.2" height="28" rx="1.5" fill="#5f9c2f"/>
+    <rect x="220" y="192" width="7.2" height="28" rx="1.5" fill="#5f9c2f"/>
+    <rect x="229" y="192" width="7.2" height="28" rx="1.5" fill="#5f9c2f"/>
+    <rect x="238" y="192" width="7.2" height="28" rx="1.5" fill="#5f9c2f"/>
+    <rect x="247" y="192" width="7.2" height="28" rx="1.5" fill="#5f9c2f"/>
+    <rect x="256" y="192" width="7.2" height="28" rx="1.5" fill="#5f9c2f"/>
+    <rect x="265" y="192" width="7.2" height="28" rx="1.5" fill="#5f9c2f"/>
+    <rect x="274" y="192" width="7.2" height="28" rx="1.5" fill="#5f9c2f"/>
+    <rect x="283" y="192" width="7.2" height="28" rx="1.5" fill="#5f9c2f"/>
+    <rect x="292" y="192" width="7.2" height="28" rx="1.5" fill="#5f9c2f"/>
+    <rect x="301" y="192" width="7.2" height="28" rx="1.5" fill="#5f9c2f"/>
+    <rect x="310" y="192" width="7.2" height="28" rx="1.5" fill="#5f9c2f"/>
+    <rect x="319" y="192" width="7.2" height="28" rx="1.5" fill="#5f9c2f"/>
+    <rect x="328" y="192" width="7.2" height="28" rx="1.5" fill="#5f9c2f"/>
+    <rect x="337" y="192" width="7.2" height="28" rx="1.5" fill="#5f9c2f"/>
+    <rect x="346" y="192" width="7.2" height="28" rx="1.5" fill="#5f9c2f"/>
+    <rect x="355" y="192" width="7.2" height="28" rx="1.5" fill="#5f9c2f"/>
+    <rect x="364" y="192" width="7.2" height="28" rx="1.5" fill="#5f9c2f"/>
+    <rect x="373" y="192" width="7.2" height="28" rx="1.5" fill="#5f9c2f"/>
+    <rect x="382" y="192" width="7.2" height="28" rx="1.5" fill="#5f9c2f"/>
+    <rect x="391" y="192" width="7.2" height="28" rx="1.5" fill="#5f9c2f"/>
+    <rect x="400" y="192" width="7.2" height="28" rx="1.5" fill="#5f9c2f"/>
+  </g>
+  <text class="licznik" x="421.2" y="211">41 tokenów</text>
+  <!-- kod (Python) -->
+  <text class="sekcja" x="40" y="252">kod (Python) · 166 znaków · 3,1 znaku na token</text>
+  <g>
+    <rect x="40" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="49" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="58" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="67" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="76" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="85" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="94" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="103" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="112" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="121" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="130" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="139" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="148" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="157" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="166" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="175" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="184" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="193" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="202" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="211" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="220" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="229" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="238" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="247" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="256" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="265" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="274" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="283" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="292" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="301" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="310" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="319" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="328" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="337" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="346" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="355" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="364" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="373" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="382" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="391" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="400" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="409" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="418" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="427" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="436" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="445" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="454" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="463" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="472" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="481" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="490" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="499" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+    <rect x="508" y="262" width="7.2" height="28" rx="1.5" fill="#4a3aa7"/>
+  </g>
+  <text class="licznik" x="529.2" y="281">53 tokenów</text>
+
+  <line x1="40" y1="318" x2="840" y2="318" stroke="#e2e8f0" stroke-width="1"/>
+  <text class="uwaga"  x="40" y="342">Polski kosztuje około 1,8 raza więcej tokenów niż angielski o tej samej treści.</text>
+  <text class="stopka" x="40" y="364">Zmierzone przez prompt_eval_count na llama3.2. qwen2.5-coder:14b daje ten sam obraz: 73 · 40 · 52 tokeny.</text>
+</svg>

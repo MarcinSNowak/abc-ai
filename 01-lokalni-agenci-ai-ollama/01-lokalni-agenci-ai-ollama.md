@@ -19,6 +19,7 @@ verified: 2026-09-02
 > - **Model językowy (LLM)** — program wytrenowany na ogromnej ilości tekstu, który przewiduje dalszy ciąg tego, co dostał na wejściu. Stąd bierze się zarówno pisanie kodu, jak i odpowiadanie na pytania.
 > - **Inferencja** — samo uruchomienie modelu, czyli liczenie odpowiedzi. Zajmuje się tym procesor albo karta graficzna i to od niego zależy, jak długo czekasz na tekst.
 > - **Prompt** — to, co wysyłasz do modelu: pytanie, polecenie, fragment kodu.
+> - **Token** — kawałek tekstu, na jaki model tnie to, co dostaje: najczęściej fragment słowa, rzadziej całe słowo. Wszystkie limity i rozmiary w tym odcinku liczą się w tokenach, nie w znakach — i, co ważne dla piszących po polsku, jeden token to znacznie mniej polskiego tekstu niż angielskiego.
 > - **Kontekst** — wszystko, co model widzi w danym zapytaniu (prompt plus wcześniejsza część rozmowy). Jest ograniczony, więc bardzo długie rozmowy zaczynają modelowi „wypadać" z pamięci.
 > - **Agent** — model wpięty w pętlę: dostaje zadanie, może sięgnąć po narzędzie (odczytać plik, uruchomić polecenie), zobaczyć wynik i dopiero wtedy odpowiedzieć. Najprostszego takiego agenta budujemy pod koniec tego odcinka.
 
@@ -233,6 +234,80 @@ Poniższa tabela pokazuje orientacyjne minimalne wymagania pamięciowe (RAM dla 
 | Serwer/stacja robocza z wieloma GPU | modele 32B+ / 70B | Wymaga dystrybucji warstw modelu między karty — sprawdź `ollama ps` pod kątem wykorzystania VRAM na każdej karcie |
 
 > **Wskazówka:** zawsze zaczynaj od najmniejszego modelu z danej kategorii zastosowania i sprawdzaj czas odpowiedzi (`ollama run <model> --verbose` pokazuje statystyki `eval rate`). Przechodź na większy model tylko wtedy, gdy jakość odpowiedzi jest niewystarczająca.
+
+### Token — jednostka, w której liczy się wszystko
+
+Słowo „token" pada w tym odcinku kilkanaście razy, a w następnych jeszcze częściej. Każdy limit, każdy rozmiar okna i każdy koszt są w nim wyrażone, więc zanim przejdziemy do liczb — co się w nim właściwie mierzy.
+
+**Model nie widzi liter ani wyrazów.** Zanim cokolwiek policzy, tekst zostaje pocięty na kawałki ze słownika ustalonego przed treningiem, a każdy kawałek zamieniony na swój numer w tym słowniku. Ten kawałek to **token**. Bywa całym słowem, bywa dwiema literami, bywa spacją sklejoną z następującym po niej wyrazem w jedną całość.
+
+#### Skąd wziął się ten słownik
+
+Nikt go nie ułożył ręcznie. Powstaje algorytmicznie, metodą BPE (*byte pair encoding*): procedura zaczyna od pojedynczych bajtów i wielokrotnie skleja najczęściej sąsiadującą parę w nowy element, aż słownik urośnie do zadanego rozmiaru. Wszystko zależy więc od tego, co było w korpusie treningowym — częste ciągi znaków dostają własny token, rzadkie zostają rozbite na kilka.
+
+Rozmiar słownika Ollama poda wprost:
+
+```bash
+curl -s http://localhost:11434/api/show \
+  -d '{"model":"llama3.2","verbose":true}' \
+  | python3 -c "import json,sys; print(len(json.load(sys.stdin)['model_info']['tokenizer.ggml.tokens']))"
+```
+
+```text
+128256
+```
+
+To samo zapytanie zwraca cały ten słownik, więc można w nim sprawdzić konkretne słowo. Jedna pułapka w zapisie: spacja przed wyrazem jest częścią tokenu i koduje się jako `Ġ`, więc szuka się `Ġplik`, nie `plik`. Wynik dla `llama3.2`:
+
+| Słowo | Ma własny token? | Odpowiednik | Ma własny token? |
+|---|---|---|---|
+| `Ġplik` | nie | `Ġfile` | tak |
+| `Ġfunkcja` | nie | `Ġfunction` | tak |
+| `Ġbaza` | nie | `Ġdatabase` | tak |
+| `Ġpamięć` | nie | `Ġmemory` | tak |
+| `Ġokno` | nie | `Ġwindow` | tak |
+| `Ġzapisz` | nie | `Ġsave` | tak |
+| `Ġkontekst` | nie | `Ġcontext` | tak |
+| `Ġprogramista` | nie | `Ġdeveloper` | tak |
+
+Osiem angielskich słów na osiem ma w tym słowniku gotowy token. Polskich — żadne. Każde z nich model musi poskładać z dwóch, trzech albo czterech kawałków. To nie jest cecha akurat tych wyrazów, tylko całego języka: korpusy treningowe są w przeważającej części angielskie, więc to angielszczyzna dostała gotowe klocki.
+
+#### Ile to kosztuje
+
+Ten sam akapit napisany po polsku i po angielsku, plus dla porównania próbka kodu w Pythonie:
+
+| Próbka | Znaki | Tokeny (`llama3.2`) | Znaków na token | Tokeny (`qwen2.5-coder:14b`) |
+|---|---|---|---|---|
+| polski | 210 | 76 | 2,8 | 73 |
+| angielski | 206 | 41 | 5,0 | 40 |
+| kod (Python) | 166 | 53 | 3,1 | 52 |
+
+![Trzy paski złożone z pojedynczych prostokątów, gdzie każdy prostokąt to jeden token. Ten sam akapit po polsku zajmuje 76 tokenów przy 210 znakach, po angielsku 41 tokenów przy 206 znakach, a próbka kodu w Pythonie 53 tokeny przy 166 znakach. Pasek polski jest niemal dwa razy dłuższy od angielskiego.](./images/tokeny-polski-angielski.svg)
+
+**Ta sama treść po polsku zajmuje około 1,8 raza więcej tokenów niż po angielsku.** Powtarzana wszędzie reguła „mniej więcej cztery znaki na token" pochodzi z pomiarów na angielskim i dla polskiego jest o połowę za optymistyczna.
+
+Konsekwencja jest bardziej dotkliwa, niż wygląda. Okno 8k daje — jak pokażemy w następnej sekcji — około 4 tysięcy tokenów na prompt. To mniej więcej **11 tysięcy znaków po polsku**, podczas gdy ta sama liczba tokenów mieści 20 tysięcy znaków po angielsku. Pisząc po polsku, pracujesz w oknie o połowę mniejszym, niż sugeruje liczba w konfiguracji.
+
+#### Jak przełożyć tokeny na prompt i na odpowiedź
+
+Nie trzeba zgadywać — każda odpowiedź Ollamy niesie dwa liczniki:
+
+- **`prompt_eval_count`** — ile tokenów miało wejście, czyli ile zajął prompt.
+- **`eval_count`** — ile tokenów model wygenerował, czyli długość odpowiedzi.
+
+Suma tych dwóch musi zmieścić się w oknie kontekstu.
+
+```bash
+curl -s http://localhost:11434/api/generate -d '{
+  "model": "llama3.2",
+  "prompt": "Napisz jedno zdanie o kotach.",
+  "stream": false
+}' | python3 -c "import json,sys; d=json.load(sys.stdin); print('prompt:', d['prompt_eval_count'], '| odpowiedź:', d['eval_count'])"
+```
+
+Żeby zmierzyć sam tekst, bez narzutu szablonu czatu, dodaj `"raw": true`. Wtedy Ollama nie doklei instrukcji systemowej ani znaczników roli, a `prompt_eval_count` policzy dokładnie to, co trafiło na wejście. Tak powstały liczby w tabelce wyżej.
+
+> **Ollama nie ma endpointu tokenizacji** — `/api/tokenize` zwraca 404. Jeśli potrzebujesz oszacowania *przed* wysłaniem, zostaje przelicznik znaków. Dla mieszanki polskiego i kodu bezpieczna stała to **2,5 znaku na token**: zaniża długość tokenu, czyli zawyża ich liczbę i myli się w stronę ostrzeżenia, a nie przeoczenia. Tej stałej używamy w skrypcie z ćwiczenia w [odcinku 2](../02-lokalny-rag-baza-wiedzy/02-lokalny-rag-baza-wiedzy.md).
 
 ### Okno kontekstu — ile model naprawdę pamięta
 
@@ -573,6 +648,8 @@ Android Studio bazuje na platformie IntelliJ, więc konfiguracja przebiega podob
 ## Praca w języku polskim
 
 Wielu polskich programistów chciałoby, żeby lokalny asystent odpowiadał po polsku, a nie po angielsku. Dobra wiadomość: większość popularnych modeli dostępnych w Ollamie (Llama 3.x, Qwen2.5, Gemma2, Mistral) była trenowana na danych wielojęzycznych i **rozumie oraz generuje poprawny język polski** — nie trzeba do tego żadnego specjalnego trybu w samej Ollamie. Jakość bywa jednak różna w zależności od modelu i rozmiaru.
+
+Jest za to cena, o której łatwo zapomnieć: polski tekst kosztuje mniej więcej **1,8 raza więcej tokenów** niż angielski o tej samej treści — patrz [„Token"](#token--jednostka-w-której-liczy-się-wszystko). Dotyczy to obu stron rozmowy, więc praca po polsku zjada okno kontekstu szybciej niż praca po angielsku. Przy dużym oknie nie ma to znaczenia; przy 4k bywa różnicą między „pamięta instrukcję" a „nie pamięta".
 
 ### Jak sprawić, żeby model odpowiadał po polsku
 
