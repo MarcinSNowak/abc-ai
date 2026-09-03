@@ -241,4 +241,4 @@ Jeśli chcesz rozwijać się w tym temacie dalej, warto zapoznać się z:
 
 ---
 
-*Poziom trudności: podstawowy (ścieżka z gotowymi wtyczkami) do zaawansowanego (własny kod agenta) · Czas czytania: ~15 minut*
+*Poziom trudności: podstawowy (ścieżka z gotowymi wtyczkami) do zaawansowanego (własny kod agenta) · Czas czytania: ~10 minut*

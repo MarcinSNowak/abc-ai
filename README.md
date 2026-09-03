@@ -41,6 +41,39 @@ Odpowiedzi modeli pokazane w artykułach są rzeczywiste, ale **niedeterministyc
 u Ciebie wyjdzie podobnie, nie identycznie. To normalne i nie znaczy, że coś
 skonfigurowałeś źle.
 
+## Data weryfikacji i czas czytania
+
+Każdy odcinek nosi dwie liczby, które łatwo zignorować, a które sporo mówią.
+
+**`verified` w nagłówku pliku** to data, w której **wszystkie polecenia z tego
+odcinka zostały uruchomione, a wszystkie liczby odczytane z wyniku**. Nie data
+ostatniej poprawki i nie data publikacji — dzień, w którym ktoś naprawdę
+przeklikał odcinek od góry do dołu na działającej instalacji. Ollama wydaje nowe
+wersje co kilka tygodni, modele znikają z biblioteki i zmieniają domyślne
+parametry, więc odcinek sprawdzony pół roku temu jest wart mniej niż sprawdzony
+wczoraj i chcemy, żeby to było widać.
+
+Stąd zasada: **`verified` podbija tylko ten, kto ponownie przeszedł odcinek
+w całości.** Dopisanie akapitu, poprawka literówki czy nowy odsyłacz nie są
+weryfikacją. Zmiana jednej sekcji też nie — data dotyczy całego odcinka, więc
+albo sprawdzasz wszystko, albo zostawiasz starą datę. Data, która pełznie do
+przodu przy każdym commicie, znaczy dokładnie tyle co jej brak.
+
+**„Czas czytania" w stopce** liczy się z treści, nie z wyczucia. Wylicza go
+[`scripts/metryka.py`](scripts/metryka.py) — proza po 200 słów na minutę, kod po
+2 sekundy na linię, wiersz tabeli po 4 sekundy, wynik zaokrąglony do 5 minut.
+Uruchom skrypt po każdej większej dopisce; kończy się kodem 1 i wypisuje, który
+odcinek się rozjechał:
+
+```bash
+python3 scripts/metryka.py
+```
+
+Model jest z założenia przybliżony i opisany w komentarzu na górze skryptu —
+chodzi o to, żeby liczba w stopce brała się skądkolwiek poza zgadywaniem.
+Kto przepisuje przykłady zamiast je przeglądać, spędzi nad odcinkiem
+wielokrotnie więcej czasu i żaden szacunek tego nie odda.
+
 ## Zgłaszanie błędów
 
 Znalazłeś nieaktualną komendę, zmienioną nazwę modelu albo krok, który u Ciebie

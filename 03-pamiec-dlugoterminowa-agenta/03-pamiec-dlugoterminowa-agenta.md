@@ -262,4 +262,4 @@ W kolejnym odcinku serii połączymy wszystkie dotychczasowe elementy (tool call
 
 ---
 
-*Poziom trudności: podstawowy (plik reguł) do zaawansowanego (własny mechanizm pamięci) · Czas czytania: ~15 minut*
+*Poziom trudności: podstawowy (plik reguł) do zaawansowanego (własny mechanizm pamięci) · Czas czytania: ~10 minut*
