@@ -518,6 +518,7 @@ Ollama współpracuje z popularnymi narzędziami dla developerów:
 
 - **VS Code + Continue / Cline** – lokalny asystent kodowania działający na modelu z Ollamy.
 - **JetBrains Rider / IntelliJ / Android Studio** – wtyczki takie jak Continue lub ProxyAI.
+- **Xcode 26+** – bez wtyczki, przez wbudowaną Coding Intelligence; Ollamę dodaje się jako dostawcę modeli w ustawieniach.
 - **Open WebUI** – graficzny interfejs czatu do lokalnych modeli (Docker: `docker run -d -p 3000:8080 ghcr.io/open-webui/open-webui:main`).
 - **LangChain / LlamaIndex** – budowa bardziej złożonych agentów z pamięcią, RAG-iem i wieloma narzędziami.
 
@@ -526,6 +527,7 @@ flowchart TB
     Editor["Edytor kodu<br/>(VS Code / Rider / Android Studio)"] --> Plugin["Wtyczka AI<br/>(Continue / Cline / ProxyAI)"]
     Plugin -->|"model czatu"| API["Ollama API<br/>localhost:11434"]
     Plugin -->|"model autouzupełniania"| API
+    Xcode["Xcode 26+<br/>(Coding Intelligence)"] -->|"bez wtyczki, przez /v1"| API
     API --> ModelA["np. qwen2.5-coder:7b"]
     API --> ModelB["np. qwen2.5-coder:1.5b"]
 ```
@@ -644,6 +646,45 @@ Android Studio bazuje na platformie IntelliJ, więc konfiguracja przebiega podob
 5. Podobnie jak w Rider, możesz dodać kilka modeli naraz (np. jeden do czatu, jeden do szybkiego autouzupełniania) — w Continue rozbudowując sekcję `models` w `config.yaml`, w ProxyAI dodając kolejne profile w ustawieniach.
 
 > **Uwaga dot. wydajności:** Android Studio i Rider to same w sobie zasobożerne IDE (indeksowanie, Gradle/MSBuild). Jeśli lokalny model działa na tym samym sprzęcie co IDE, rozważ mniejszy model (7B) lub uruchomienie Ollamy na osobnej maszynie w sieci lokalnej (`OLLAMA_HOST=0.0.0.0:11434`) i wskazanie w IDE jej adresu IP.
+
+### Konfiguracja Xcode
+
+Xcode wyłamuje się z powyższego schematu: od wersji 26 ma asystenta **wbudowanego** (Coding Intelligence) i nie potrzebuje żadnej wtyczki. Ollamę podpina się jako dostawcę modeli wprost w ustawieniach.
+
+1. Sprawdź wersję — potrzebujesz **Xcode 26.0 lub nowszego**. Dokumentacja Ollamy wymienia też skonfigurowane **Apple Intelligence** jako warunek wstępny.
+2. Wejdź w `Xcode → Settings → Intelligence` i wybierz **Add a Model Provider**.
+3. Kliknij **Locally Hosted**, wpisz port `11434` i zatwierdź przyciskiem **Add**. Formularz pyta wyłącznie o port — adres jest na sztywno `localhost`.
+4. Modele Xcode wykrywa sam, z tych załadowanych w Ollamie. Jeśli lista nie odświeży się od razu, zrestartuj Xcode.
+5. Model wybierzesz ikoną gwiazdki w lewym górnym rogu okna.
+
+> **Ollama na innej maszynie?** Opcja „Locally Hosted" zakłada `localhost` i nie przyjmuje adresu IP, więc wariant z `OLLAMA_HOST=0.0.0.0` opisany wyżej dla Rider i Android Studio tutaj nie zadziała. Obejściem jest tunel SSH, np. `ssh -L 11435:localhost:11434 użytkownik@serwer`, a następnie wpisanie w Xcode portu `11435`. Zwróć uwagę na numer portu po lewej stronie: jeśli lokalnie też masz Ollamę, `11434` jest już zajęte.
+
+#### Czego w Xcode nie ustawisz
+
+Xcode rozmawia z Ollamą przez API zgodne z OpenAI (`/v1/chat/completions`), a nie przez natywne `/api/chat`, którego używają wtyczki. Ma to jedną konsekwencję, o której warto wiedzieć, zanim uznasz, że „ten model jest do niczego".
+
+**Okna kontekstu nie da się ustawić z poziomu Xcode.** Formularz pyta tylko o port, a sam protokół OpenAI nie ma pola odpowiadającego `num_ctx`. Sprawdziliśmy, co się dzieje, gdy mimo to wyśle się je w zapytaniu — model z oknem 2048 tokenów i prompt znacznie dłuższy niż okno:
+
+| Zapytanie do `/v1/chat/completions` | `prompt_tokens` |
+|---|---|
+| bez `options` | 1 026 |
+| z `"options": {"num_ctx": 16384}` | 1 026 |
+
+Bez różnicy — `options` na tej ścieżce jest po cichu ignorowane. Przy okazji widać, że [podział okna na pół](#na-prompt-przypada-połowa-okna) obowiązuje tu identycznie: okno 2048 daje 1026 przyjętych tokenów, dokładnie tyle samo co w pomiarach wyżej. Model odpowiedział wtedy „Nie ma odpowiedzi na to pytanie", bo hasło z początku promptu zostało ucięte.
+
+Zostają dwie drogi, obie poza Xcode:
+
+- **`OLLAMA_CONTEXT_LENGTH`** ustawione na serwerze Ollamy — działa globalnie, dla każdego modelu bez własnego ustawienia (patrz [„Inne przydatne zmienne środowiskowe"](#inne-przydatne-zmienne-środowiskowe)).
+- **Własny wariant modelu** z oknem wpisanym na stałe — precyzyjniejsze, bo dotyczy tylko jego:
+
+```bash
+printf 'FROM qwen2.5-coder:7b\nPARAMETER num_ctx 16384\n' > Modelfile
+ollama create qwen-xcode -f Modelfile
+```
+
+Po `ollama create` model `qwen-xcode` pojawi się w Xcode jako osobna pozycja na liście, już z właściwym oknem. Zweryfikujesz to poleceniem `ollama ps` — w kolumnie `CONTEXT` powinno stać `16384`.
+
+> **Dobór modelu pod Swift/SwiftUI:** zasada jak w pozostałych IDE — zacznij od `qwen2.5-coder:7b` i schodź albo wchodź wyżej zależnie od pamięci. Pamiętaj tylko, że Xcode wraz z indeksowaniem większego projektu sam potrafi zająć kilka gigabajtów tej samej pamięci unified, o którą konkuruje model.
 
 ## Praca w języku polskim
 
