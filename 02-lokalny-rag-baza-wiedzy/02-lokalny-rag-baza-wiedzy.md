@@ -33,18 +33,9 @@ Krótko: **Ollama nie jest gotowym frameworkiem RAG**, ale dostarcza dwa kluczow
 
 Brakujący element — **bazę wektorową** (do przechowywania i wyszukiwania embeddingów) oraz **logikę orkiestracji** (dzielenie dokumentów, wyszukiwanie, składanie promptu) — trzeba dodać osobno, np. przy pomocy lekkiej bazy wektorowej (Chroma, LanceDB, Qdrant) i prostego skryptu lub frameworka (LangChain, LlamaIndex). Dobra wiadomość: wszystkie te elementy mogą działać w 100% lokalnie, obok Ollamy, na tym samym komputerze.
 
-```mermaid
-flowchart LR
-    Docs["Dokumentacja projektu<br/>(kod, README, ADR, wiki)"] -->|chunking| Chunker["Podział na fragmenty"]
-    Chunker -->|"POST /api/embed"| Embed["Ollama<br/>model embeddingowy<br/>(np. nomic-embed-text)"]
-    Embed --> VDB[("Lokalna baza wektorowa<br/>Chroma / LanceDB / Qdrant")]
+![RAG składa się z dwóch przebiegów korzystających z jednej bazy wektorowej. Indeksowanie, uruchamiane raz i przy zmianach: dokumentacja i kod są dzielone na fragmenty, fragmenty trafiają do modelu embeddingowego przez POST /api/embed, a wektory zapisują się w lokalnej bazie wektorowej. Odpowiadanie, przy każdym pytaniu: pytanie jest zamieniane na wektor tym samym endpointem, baza zwraca top-k najbardziej podobnych fragmentów, z pytania i fragmentów składany jest prompt, a model generatywny odpowiada przez POST /api/chat.](./images/potok-rag.svg)
 
-    Q["Pytanie programisty"] -->|"POST /api/embed"| Embed
-    Embed -->|"wektor zapytania"| VDB
-    VDB -->|"top-k najbardziej podobnych fragmentów"| Prompt["Złożenie promptu:<br/>pytanie + kontekst"]
-    Prompt -->|"POST /api/chat"| LLM["Ollama<br/>model generatywny<br/>(np. qwen2.5-coder)"]
-    LLM --> Answer["Odpowiedź osadzona<br/>w kontekście projektu"]
-```
+Warto od razu zauważyć, że są to **dwa osobne momenty w czasie**. Indeksowanie uruchamiasz raz, a potem tylko wtedy, gdy repozytorium się zmieni. Wyszukiwanie dzieje się przy każdym pytaniu i to ono decyduje o tym, co model w ogóle zobaczy.
 
 ### Dlaczego to ważne dla programisty?
 

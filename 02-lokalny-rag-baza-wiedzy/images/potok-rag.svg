@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 484" width="880" height="484" role="img" aria-labelledby="tytul opis">
+  <title id="tytul">Potok RAG: indeksowanie i odpowiadanie</title>
+  <desc id="opis">RAG składa się z dwóch przebiegów korzystających z jednej bazy wektorowej. Przebieg pierwszy, indeksowanie, uruchamiany raz i przy zmianach: dokumentacja i kod są dzielone na fragmenty, fragmenty trafiają do modelu embeddingowego przez POST /api/embed, a powstałe wektory zapisują się w bazie wektorowej (Chroma, LanceDB lub Qdrant) na lokalnym dysku. Przebieg drugi, odpowiadanie, przy każdym pytaniu: pytanie programisty jest zamieniane na wektor tym samym endpointem, baza zwraca top-k najbardziej podobnych fragmentów, z pytania i fragmentów składany jest prompt, a model generatywny odpowiada przez POST /api/chat. Model nigdy nie widzi całego repozytorium — tylko zwrócone fragmenty. Oba przebiegi muszą używać tego samego modelu embeddingowego.</desc>
+
+  <defs>
+    <marker id="grot" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8"/>
+    </marker>
+  </defs>
+
+  <style>
+    text { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    .tytul   { font-size: 20px; font-weight: 600; fill: #16213e; }
+    .podtyt  { font-size: 13px; fill: #64748b; }
+    .przebA  { font-size: 11px; font-weight: 600; fill: #4a7a1f; letter-spacing: 0.08em; }
+    .przebB  { font-size: 11px; font-weight: 600; fill: #2a78d6; letter-spacing: 0.08em; }
+    .nazwa   { font-size: 13px; font-weight: 600; fill: #16213e; }
+    .opis    { font-size: 11px; fill: #64748b; }
+    .strzalk { font-size: 11px; fill: #334155; }
+    .baza    { font-size: 13.5px; font-weight: 600; fill: #4a3aa7; }
+    .bazao   { font-size: 11px; fill: #5a4bb5; }
+    .stopka  { font-size: 12px; fill: #64748b; }
+  </style>
+
+  <rect x="0.5" y="0.5" width="879" height="483" rx="12" fill="#f6f8f4" stroke="#e2e8f0"/>
+
+  <text class="tytul"  x="40" y="48">RAG lokalnie: dwa przebiegi, jedna baza</text>
+  <text class="podtyt" x="40" y="72">Indeksowanie uruchamiasz raz i przy zmianach. Wyszukiwanie dzieje się przy każdym pytaniu.</text>
+
+  <!-- Przebieg 1: indeksowanie -->
+  <text class="przebA" x="52" y="104">1 · INDEKSOWANIE — RAZ I PRZY ZMIANACH</text>
+
+  <rect x="52"  y="116" width="220" height="60" rx="8" fill="#ffffff" stroke="#5f9c2f"/>
+  <text class="nazwa" x="68" y="142">Dokumentacja i kod</text>
+  <text class="opis"  x="68" y="160">README, ADR, wiki, źródła</text>
+
+  <rect x="330" y="116" width="220" height="60" rx="8" fill="#ffffff" stroke="#5f9c2f"/>
+  <text class="nazwa" x="346" y="142">Fragmenty</text>
+  <text class="opis"  x="346" y="160">chunking — podział na akapity</text>
+
+  <rect x="608" y="116" width="220" height="60" rx="8" fill="#ffffff" stroke="#5f9c2f"/>
+  <text class="nazwa" x="624" y="142">Embedding fragmentów</text>
+  <text class="opis"  x="624" y="160">POST /api/embed</text>
+
+  <line x1="272" y1="146" x2="328" y2="146" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#grot)"/>
+  <line x1="550" y1="146" x2="606" y2="146" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#grot)"/>
+
+  <line x1="718" y1="176" x2="718" y2="204" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#grot)"/>
+  <text class="strzalk" x="708" y="196" text-anchor="end">zapis wektorów</text>
+
+  <!-- Wspólna baza -->
+  <rect x="52" y="206" width="776" height="52" rx="8" fill="#ede9fb" stroke="#4a3aa7"/>
+  <ellipse cx="82" cy="223" rx="12" ry="4.5" fill="none" stroke="#4a3aa7" stroke-width="1.3"/>
+  <path d="M 70 223 L 70 241 A 12 4.5 0 0 0 94 241 L 94 223" fill="none" stroke="#4a3aa7" stroke-width="1.3"/>
+  <text class="baza"  x="110" y="228">Baza wektorowa</text>
+  <text class="bazao" x="110" y="246">Chroma · LanceDB · Qdrant — na Twoim dysku</text>
+
+  <!-- Przebieg 2: odpowiadanie -->
+  <text class="przebB" x="52" y="296">2 · ODPOWIADANIE — KAŻDE PYTANIE</text>
+
+  <line x1="340" y1="316" x2="340" y2="260" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#grot)"/>
+  <text class="strzalk" x="350" y="290">szukanie po podobieństwie</text>
+
+  <line x1="540" y1="258" x2="540" y2="314" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#grot)"/>
+  <text class="strzalk" x="550" y="290">top-k fragmentów</text>
+
+  <rect x="52"  y="316" width="176" height="66" rx="8" fill="#ffffff" stroke="#2a78d6"/>
+  <text class="nazwa" x="66" y="340">Pytanie programisty</text>
+  <text class="opis"  x="66" y="357">np. „gdzie jest</text>
+  <text class="opis"  x="66" y="372">walidacja e-maila?”</text>
+
+  <rect x="252" y="316" width="176" height="66" rx="8" fill="#ffffff" stroke="#2a78d6"/>
+  <text class="nazwa" x="266" y="340">Embedding pytania</text>
+  <text class="opis"  x="266" y="357">POST /api/embed</text>
+  <text class="opis"  x="266" y="372">ten sam model</text>
+
+  <rect x="452" y="316" width="176" height="66" rx="8" fill="#ffffff" stroke="#2a78d6"/>
+  <text class="nazwa" x="466" y="340">Prompt</text>
+  <text class="opis"  x="466" y="357">pytanie + znalezione</text>
+  <text class="opis"  x="466" y="372">fragmenty</text>
+
+  <rect x="652" y="316" width="176" height="66" rx="8" fill="#ffffff" stroke="#2a78d6"/>
+  <text class="nazwa" x="666" y="340">Model generatywny</text>
+  <text class="opis"  x="666" y="357">POST /api/chat</text>
+  <text class="opis"  x="666" y="372">→ odpowiedź</text>
+
+  <line x1="228" y1="349" x2="250" y2="349" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#grot)"/>
+  <line x1="428" y1="349" x2="450" y2="349" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#grot)"/>
+  <line x1="628" y1="349" x2="650" y2="349" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#grot)"/>
+
+  <line x1="40" y1="418" x2="840" y2="418" stroke="#e2e8f0" stroke-width="1"/>
+  <text class="stopka" x="40" y="440">Model nigdy nie widzi całego repozytorium — dostaje tylko te fragmenty, które baza uznała za najbliższe pytaniu.</text>
+  <text class="stopka" x="40" y="462">Oba przebiegi muszą używać tego samego modelu embeddingowego. Zmiana modelu wymaga przeindeksowania bazy.</text>
+</svg>

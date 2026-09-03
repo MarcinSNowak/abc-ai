@@ -38,15 +38,9 @@ Coraz więcej zespołów programistycznych chce korzystać z modeli językowych 
 
 [Ollama](https://ollama.com) to lekkie narzędzie (CLI + serwer lokalny), które pozwala pobierać, uruchamiać i zarządzać modelami LLM (np. Llama, Mistral, Qwen, Gemma, DeepSeek) na lokalnym komputerze. Ollama udostępnia lokalne REST API kompatybilne w dużej mierze z formatem OpenAI, dzięki czemu łatwo integruje się z istniejącymi narzędziami i bibliotekami (np. LangChain, LlamaIndex, VS Code, Continue).
 
-```mermaid
-flowchart LR
-    Dev["Programista"] --> IDE["IDE / Edytor<br/>(VS Code, Rider, Android Studio)"]
-    IDE -->|"wtyczka: Continue / Cline / ProxyAI"| API["Ollama REST API<br/>localhost:11434"]
-    CLI["Terminal (ollama run / pull)"] --> Server
-    API --> Server["Serwer Ollama"]
-    Server --> Models[("Lokalne modele LLM<br/>na dysku")]
-    Server --> Runtime["Silnik inferencji<br/>(CPU / CUDA / Metal)"]
-```
+![Wszystko dzieje się na jednym komputerze. Dwie drogi wejścia — edytor kodu z wtyczką AI oraz terminal z poleceniami ollama pull i ollama run — łączą się po HTTP z tym samym serwerem Ollamy nasłuchującym na 127.0.0.1:11434. Serwer wczytuje modele z katalogu ~/.ollama/models i liczy odpowiedzi na CPU, CUDA lub Metal.](./images/architektura-ollama.svg)
+
+Zwróć uwagę na jeden szczegół, który łatwo przeoczyć: **terminal nie jest osobną drogą do modelu**. `ollama run` też jest klientem tego samego REST API — otwiera połączenie na port `11434` dokładnie tak jak wtyczka w edytorze. Wszystko, co robisz w terminalu, da się więc powtórzyć jednym `curl`-em, i odwrotnie.
 
 ## Wymagania wstępne
 
@@ -104,20 +98,6 @@ ollama serve
 > Gdy `ollama serve` kończy się błędem `address already in use`, to **nie jest awaria** — serwer już działa w tle. Ten i pozostałe problemy startowe zebraliśmy w aneksie [„Kiedy coś nie działa i jak dostroić serwer"](#kiedy-coś-nie-działa-i-jak-dostroić-serwer) na końcu odcinka.
 
 Domyślnie serwer nasłuchuje na `http://localhost:11434`.
-
-```mermaid
-sequenceDiagram
-    participant U as Użytkownik
-    participant T as Terminal
-    participant S as Usługa Ollama
-
-    U->>T: ollama --version
-    T-->>U: numer wersji
-    U->>T: curl http://localhost:11434
-    T->>S: sprawdzenie API
-    S-->>T: "Ollama is running"
-    T-->>U: potwierdzenie działania serwera
-```
 
 ## Pobieranie i uruchamianie pierwszego modelu
 

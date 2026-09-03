@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 496" width="880" height="496" role="img" aria-labelledby="tytul opis">
+  <title id="tytul">Z czego składa się lokalna instalacja Ollamy</title>
+  <desc id="opis">Wszystko dzieje się na jednym komputerze. Dwie drogi wejścia — edytor kodu z wtyczką AI (VS Code, Rider, Android Studio, Xcode) oraz terminal z poleceniami ollama pull i ollama run — łączą się po HTTP z tym samym serwerem Ollamy, nasłuchującym na 127.0.0.1:11434. Serwer wczytuje modele z katalogu ~/.ollama/models i liczy odpowiedzi na silniku inferencji: CPU, CUDA lub Metal. Domyślnie serwer nasłuchuje wyłącznie na pętli zwrotnej i z sieci jest niewidoczny; zmienia to dopiero zmienna OLLAMA_HOST.</desc>
+
+  <defs>
+    <marker id="grot" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8"/>
+    </marker>
+  </defs>
+
+  <style>
+    text { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    .tytul   { font-size: 20px; font-weight: 600; fill: #16213e; }
+    .podtyt  { font-size: 13px; fill: #64748b; }
+    .ramka   { font-size: 11px; fill: #64748b; letter-spacing: 0.08em; }
+    .nazwa   { font-size: 13.5px; font-weight: 600; fill: #16213e; }
+    .opis    { font-size: 11px; fill: #64748b; }
+    .strzalk { font-size: 11px; fill: #334155; }
+    .serwer  { font-size: 15px; font-weight: 600; fill: #ffffff; }
+    .serwero { font-size: 11.5px; fill: #cfc9f2; }
+    .stopka  { font-size: 12px; fill: #64748b; }
+  </style>
+
+  <rect x="0.5" y="0.5" width="879" height="495" rx="12" fill="#f6f8f4" stroke="#e2e8f0"/>
+
+  <text class="tytul"  x="40" y="50">Ollama na Twoim komputerze</text>
+  <text class="podtyt" x="40" y="74">Dwie drogi wejścia, jeden serwer, żadnego ruchu na zewnątrz.</text>
+
+  <!-- Granica maszyny -->
+  <rect x="40" y="100" width="800" height="326" rx="10" fill="none" stroke="#94a3b8" stroke-dasharray="6 5"/>
+  <rect x="62" y="92" width="122" height="16" fill="#f6f8f4"/>
+  <text class="ramka" x="70" y="104">TWÓJ KOMPUTER</text>
+
+  <!-- Wejścia -->
+  <rect x="72"  y="124" width="340" height="62" rx="8" fill="#ffffff" stroke="#2a78d6"/>
+  <text class="nazwa" x="92" y="150">Edytor kodu z wtyczką AI</text>
+  <text class="opis"  x="92" y="168">VS Code · Rider · Android Studio · Xcode</text>
+
+  <rect x="468" y="124" width="340" height="62" rx="8" fill="#ffffff" stroke="#5f9c2f"/>
+  <text class="nazwa" x="488" y="150">Terminal</text>
+  <text class="opis"  x="488" y="168">ollama pull · ollama run · ollama ps</text>
+
+  <line x1="242" y1="186" x2="242" y2="238" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#grot)"/>
+  <text class="strzalk" x="232" y="217" text-anchor="end">HTTP · localhost:11434</text>
+
+  <line x1="638" y1="186" x2="638" y2="238" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#grot)"/>
+  <text class="strzalk" x="648" y="217">HTTP · to samo API</text>
+
+  <!-- Serwer -->
+  <rect x="232" y="240" width="416" height="62" rx="8" fill="#4a3aa7"/>
+  <text class="serwer"  x="252" y="268">Serwer Ollama</text>
+  <text class="serwero" x="252" y="287">REST API — http://127.0.0.1:11434</text>
+
+  <line x1="242" y1="302" x2="242" y2="344" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#grot)"/>
+  <text class="strzalk" x="232" y="328" text-anchor="end">wczytuje z dysku</text>
+
+  <line x1="638" y1="302" x2="638" y2="344" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#grot)"/>
+  <text class="strzalk" x="648" y="328">liczy odpowiedź</text>
+
+  <!-- Zasoby -->
+  <rect x="72"  y="346" width="340" height="62" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
+  <text class="nazwa" x="92" y="372">Modele na dysku</text>
+  <text class="opis"  x="92" y="390">~/.ollama/models — pobrane przez ollama pull</text>
+
+  <rect x="468" y="346" width="340" height="62" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
+  <text class="nazwa" x="488" y="372">Silnik inferencji</text>
+  <text class="opis"  x="488" y="390">CPU · CUDA (NVIDIA) · Metal (Apple Silicon)</text>
+
+  <line x1="40" y1="450" x2="840" y2="450" stroke="#e2e8f0" stroke-width="1"/>
+  <text class="stopka" x="40" y="472">Domyślnie serwer nasłuchuje tylko na 127.0.0.1 — z sieci jest niewidoczny. Zmienia to dopiero OLLAMA_HOST.</text>
+</svg>
