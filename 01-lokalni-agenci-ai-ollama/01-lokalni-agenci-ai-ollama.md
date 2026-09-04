@@ -430,17 +430,7 @@ response = client.chat.completions.create(
 print(response.choices[0].message.content)
 ```
 
-```mermaid
-sequenceDiagram
-    participant C as Klient (curl / SDK OpenAI)
-    participant A as Ollama API (/v1/chat/completions)
-    participant M as Załadowany model LLM
-
-    C->>A: POST prompt / messages
-    A->>M: przekazanie kontekstu do inferencji
-    M-->>A: wygenerowana odpowiedź (tokeny)
-    A-->>C: odpowiedź JSON (stream lub pełna)
-```
+![Cztery kroki jednego zapytania między trzema uczestnikami. Klient — curl, SDK OpenAI albo wtyczka IDE — wysyła POST na /v1/chat/completions z ładunkiem zawierającym model i wiadomości. Serwer Ollamy, nasłuchujący na 127.0.0.1:11434, przekazuje kontekst do inferencji na wczytanym do pamięci modelu. Model odsyła generowane tokeny kolejno, w miarę liczenia, a serwer składa z nich odpowiedź JSON — strumieniem albo jako jedną całość, zależnie od pola stream.](./images/przeplyw-wywolania-api.svg)
 
 ## Budowa prostego agenta AI na bazie Ollama
 

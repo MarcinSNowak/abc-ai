@@ -43,17 +43,17 @@ Ten odcinek skupia się głównie na pamięci **semantycznej** i **proceduralnej
 
 ```mermaid
 flowchart TB
-    Session["Sesja rozmowy z agentem"] --> Extract["Ekstrakcja faktów<br/>(LLM: podsumowanie rozmowy)"]
-    Extract --> Score{"Czy fakt jest istotny<br/>i długoterminowy?"}
-    Score -- tak --> Embed["Ollama: embedding faktu"]
-    Score -- nie --> Discard["Odrzucone (pamięć robocza)"]
-    Embed --> Store[("Pamięć projektu<br/>SQLite + baza wektorowa")]
+    Session["Sesja rozmowy"] --> Extract["Ekstrakcja faktów<br/>(LLM)"]
+    Extract --> Score{"Fakt istotny<br/>i długoterminowy?"}
+    Score -- tak --> Embed["Ollama:<br/>embedding faktu"]
+    Score -- nie --> Discard["Odrzucone<br/>(pamięć robocza)"]
+    Embed --> Store[("Pamięć projektu<br/>SQLite + wektory")]
 
-    NewQuery["Nowe pytanie w kolejnej sesji"] --> EmbedQ["Ollama: embedding pytania"]
+    NewQuery["Nowe pytanie<br/>w kolejnej sesji"] --> EmbedQ["Ollama:<br/>embedding pytania"]
     EmbedQ --> Store
-    Store -->|"najbardziej trafne fakty"| Context["Kontekst dodany do promptu"]
-    Context --> LLM["Ollama: model generatywny"]
-    LLM --> Answer["Odpowiedź uwzględniająca<br/>historię projektu"]
+    Store -->|"trafne fakty"| Context["Kontekst<br/>dodany do promptu"]
+    Context --> LLM["Ollama:<br/>model generatywny"]
+    LLM --> Answer["Odpowiedź z historią<br/>projektu"]
 ```
 
 ## Wymagania wstępne

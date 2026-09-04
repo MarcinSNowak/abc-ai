@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 512" width="880" height="512" role="img" aria-labelledby="tytul opis">
+  <title id="tytul">Przebieg jednego wywołania lokalnego API Ollamy</title>
+  <desc id="opis">Cztery kroki jednego zapytania między trzema uczestnikami. Klient — curl, SDK OpenAI albo wtyczka IDE — wysyła POST na /v1/chat/completions z ładunkiem zawierającym model i wiadomości. Serwer Ollamy, nasłuchujący na 127.0.0.1:11434, przekazuje kontekst do inferencji na wczytanym do pamięci modelu, na przykład llama3.2. Model odsyła generowane tokeny kolejno, w miarę liczenia. Serwer składa z nich odpowiedź JSON i odsyła klientowi — strumieniem albo jako jedną całość, zależnie od pola stream. Zgodność z API OpenAI sprawia, że istniejące SDK działa po zmianie samego base_url. Natywny endpoint /api/generate i zgodny z OpenAI /v1/chat/completions to ten sam serwer i ten sam model, różnią się tylko kształtem JSON-a.</desc>
+
+  <defs>
+    <marker id="grot" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8"/>
+    </marker>
+  </defs>
+
+  <style>
+    text { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    .tytul   { font-size: 20px; font-weight: 600; fill: #16213e; }
+    .podtyt  { font-size: 13px; fill: #64748b; }
+    .nazwa   { font-size: 13.5px; font-weight: 600; fill: #16213e; }
+    .opis    { font-size: 11px; fill: #64748b; }
+    .serwer  { font-size: 13.5px; font-weight: 600; fill: #ffffff; }
+    .serwero { font-size: 11px; fill: #cfc9f2; }
+    .krok    { font-size: 11px; font-weight: 600; fill: #4a3aa7; }
+    .strzalk { font-size: 11.5px; font-weight: 600; fill: #16213e; }
+    .strzalko{ font-size: 11px; fill: #64748b; }
+    .stopka  { font-size: 12px; fill: #64748b; }
+  </style>
+
+  <rect x="0.5" y="0.5" width="879" height="511" rx="12" fill="#f6f8f4" stroke="#e2e8f0"/>
+
+  <text class="tytul"  x="40" y="48">Jedno wywołanie lokalnego API</text>
+  <text class="podtyt" x="40" y="72">Cztery kroki — od curl-a albo SDK aż po wygenerowane tokeny.</text>
+
+  <!-- Uczestnicy -->
+  <rect x="40"  y="104" width="220" height="60" rx="8" fill="#ffffff" stroke="#2a78d6"/>
+  <text class="nazwa" x="150" y="130" text-anchor="middle">Klient</text>
+  <text class="opis"  x="150" y="148" text-anchor="middle">curl · SDK OpenAI · wtyczka IDE</text>
+
+  <rect x="330" y="104" width="220" height="60" rx="8" fill="#4a3aa7"/>
+  <text class="serwer"  x="440" y="130" text-anchor="middle">Ollama API</text>
+  <text class="serwero" x="440" y="148" text-anchor="middle">127.0.0.1:11434</text>
+
+  <rect x="620" y="104" width="220" height="60" rx="8" fill="#ffffff" stroke="#5f9c2f"/>
+  <text class="nazwa" x="730" y="130" text-anchor="middle">Model LLM</text>
+  <text class="opis"  x="730" y="148" text-anchor="middle">np. llama3.2, wczytany do pamięci</text>
+
+  <!-- Linie życia -->
+  <line x1="150" y1="164" x2="150" y2="424" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="4 5"/>
+  <line x1="440" y1="164" x2="440" y2="424" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="4 5"/>
+  <line x1="730" y1="164" x2="730" y2="424" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="4 5"/>
+
+  <!-- 1. Klient → API -->
+  <text class="krok"     x="150" y="196" text-anchor="middle">1</text>
+  <text class="strzalk"  x="295" y="196" text-anchor="middle">POST /v1/chat/completions</text>
+  <text class="strzalko" x="295" y="211" text-anchor="middle">{ "model": …, "messages": [ … ] }</text>
+  <line x1="150" y1="218" x2="436" y2="218" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#grot)"/>
+
+  <!-- 2. API → model -->
+  <text class="krok"     x="440" y="258" text-anchor="middle">2</text>
+  <text class="strzalk"  x="585" y="258" text-anchor="middle">kontekst do inferencji</text>
+  <text class="strzalko" x="585" y="273" text-anchor="middle">prompt + historia rozmowy</text>
+  <line x1="440" y1="280" x2="726" y2="280" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#grot)"/>
+
+  <!-- 3. Model → API -->
+  <text class="krok"     x="730" y="320" text-anchor="middle">3</text>
+  <text class="strzalk"  x="585" y="320" text-anchor="middle">generowane tokeny</text>
+  <text class="strzalko" x="585" y="335" text-anchor="middle">kolejno, w miarę liczenia</text>
+  <line x1="730" y1="342" x2="444" y2="342" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#grot)"/>
+
+  <!-- 4. API → klient -->
+  <text class="krok"     x="440" y="382" text-anchor="middle">4</text>
+  <text class="strzalk"  x="295" y="382" text-anchor="middle">odpowiedź JSON</text>
+  <text class="strzalko" x="295" y="397" text-anchor="middle">strumień albo jedna całość — zależnie od "stream"</text>
+  <line x1="440" y1="404" x2="154" y2="404" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#grot)"/>
+
+  <line x1="40" y1="444" x2="840" y2="444" stroke="#e2e8f0" stroke-width="1"/>
+  <text class="stopka" x="40" y="466">Zgodność z API OpenAI oznacza, że istniejące SDK działa po zmianie samego base_url — reszta kodu zostaje bez zmian.</text>
+  <text class="stopka" x="40" y="488">Natywne /api/generate i zgodne z OpenAI /v1/chat/completions to ten sam serwer i ten sam model, inny kształt JSON-a.</text>
+</svg>
