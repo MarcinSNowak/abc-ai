@@ -28,12 +28,14 @@ W poprzednich trzech odcinkach zbudowaliśmy krok po kroku fundamenty lokalnego 
 ```mermaid
 flowchart TB
     U["Pytanie / zadanie programisty"] --> Plan["Model LLM (Ollama)<br/>decyduje, co zrobić dalej"]
-    Plan -->|"potrzebna wiedza o projekcie"| RAG["RAG: baza wektorowa<br/>(odcinek 2)"]
-    Plan -->|"potrzebny fakt z historii projektu"| Mem["Pamięć długoterminowa<br/>(odcinek 3)"]
-    Plan -->|"potrzebna akcja<br/>(odczyt pliku, uruchomienie testów...)"| Tools["Narzędzia (tool calling)"]
-    RAG --> Plan
-    Mem --> Plan
-    Tools --> Plan
+    Plan -->|"czego potrzebuję?"| Z
+    Z --> Plan
+    subgraph Z["Do dyspozycji agenta"]
+        direction LR
+        RAG["RAG: baza wektorowa<br/>(odcinek 2)"]
+        Mem["Pamięć długoterminowa<br/>(odcinek 3)"]
+        Tools["Narzędzia<br/>(tool calling)"]
+    end
     Plan -->|"zadanie zakończone"| Answer["Odpowiedź dla programisty"]
     Answer -.->|"zapis istotnych ustaleń"| Mem
 ```
