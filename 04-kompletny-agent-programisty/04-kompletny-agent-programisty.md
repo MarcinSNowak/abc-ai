@@ -64,6 +64,12 @@ Dla wielu zespołów to w zupełności wystarczający, w pełni lokalny "agent p
 
 Jeśli chcesz zbudować **własnego, niestandardowego agenta** (np. zintegrowanego z wewnętrznym systemem firmy, botem na Slacku, czy pipeline'em CI), poniżej pokazujemy, jak połączyć wszystkie trzy mechanizmy z poprzednich odcinków w jednej pętli Python.
 
+Będziesz potrzebować modelu, który poprawnie obsługuje wywoływanie narzędzi — w tym odcinku używamy `llama3.2` i wyjaśniamy ten wybór w [ostrzeżeniu pod pętlą agenta](#zanim-uruchomisz-sprawdź-czy-twój-model-naprawdę-zwraca-tool_calls):
+
+```bash
+ollama pull llama3.2
+```
+
 ## Budowa własnego agenta krok po kroku
 
 ### 1. Definicja narzędzi (tool calling)
@@ -122,7 +128,10 @@ Wykorzystujemy klasy z poprzednich odcinków (`collection` z Chroma dla RAG, `Pr
 ```python
 import ollama
 
-CHAT_MODEL = "qwen2.5-coder:7b"
+# Model czatu musi poprawnie zwracać `tool_calls` — a nie każdy to robi,
+# nawet jeśli deklaruje obsługę narzędzi. Zanim go wybierzesz, uruchom sondę
+# z ostrzeżenia pod pętlą agenta.
+CHAT_MODEL = "llama3.2"
 EMBED_MODEL = "nomic-embed-text"
 
 def gather_context(question: str, rag_collection, memory) -> str:
@@ -179,6 +188,53 @@ def run_agent(question: str, rag_collection, memory, max_steps: int = 5) -> str:
     return "Agent nie zakończył zadania w limicie kroków — sprawdź logi rozmowy."
 ```
 
+### Zanim uruchomisz: sprawdź, czy Twój model naprawdę zwraca `tool_calls`
+
+Cała powyższa pętla stoi na jednym założeniu: model poproszony o użycie narzędzia odpowiada **strukturą** — polem `tool_calls`, które program potrafi odczytać. Istnieje alternatywa, która wygląda niemal identycznie i jest bezużyteczna: model wypisuje wywołanie jako **zwykły tekst** w treści odpowiedzi.
+
+```json
+{"name": "read_file", "arguments": {"path": "/tmp/probka.txt"}}
+```
+
+JSON jest poprawny. Nazwa narzędzia się zgadza, argument też. Człowiek czytający log uzna, że wszystko działa. Tymczasem `message.get("tool_calls")` zwraca `None`, więc pętla uznaje, że model skończył zadanie, i **oddaje ten JSON użytkownikowi jako gotową odpowiedź**. Żadnego wyjątku, żadnego ostrzeżenia — po prostu agent, który nigdy niczego nie wywołuje.
+
+Najważniejsze jest to, że **deklarowana obsługa narzędzi tego nie gwarantuje.** Polecenie `ollama show <model>` wypisuje możliwości modelu, w tym `tools`, ale ta deklaracja mówi tylko tyle, że szablon czatu *przyjmuje* definicje narzędzi. Czy model wygeneruje odpowiedź w formacie, który Ollama rozpozna i zamieni na `tool_calls`, to osobna sprawa — zależna od tego, jak model był trenowany, i zmieniająca się między wersjami.
+
+Sprawdzenie zajmuje kilkanaście linijek i warto je zrobić **przed** budowaniem pętli:
+
+```python
+import ollama
+
+SONDA = [{
+    "type": "function",
+    "function": {
+        "name": "podaj_czas",
+        "description": "Zwraca aktualny czas",
+        "parameters": {"type": "object", "properties": {}},
+    },
+}]
+
+for model in ["llama3.2", "qwen2.5-coder:7b"]:
+    response = ollama.chat(
+        model=model,
+        messages=[{"role": "user", "content": "Która godzina? Użyj narzędzia."}],
+        tools=SONDA,
+    )
+    dziala = "TAK" if response["message"].get("tool_calls") else "NIE"
+    print(f"{model:<20} tool_calls={dziala}")
+```
+
+Wynik na maszynie, na której weryfikowaliśmy ten odcinek:
+
+```text
+llama3.2             tool_calls=TAK
+qwen2.5-coder:7b     tool_calls=NIE
+```
+
+> **Uwaga o `qwen2.5-coder:7b`.** To model polecany w [odcinku 1](../01-lokalni-agenci-ai-ollama/01-lokalni-agenci-ai-ollama.md) do pracy z kodem i do tego zadania nadal jest dobrym wyborem. Do **wywoływania narzędzi** — w wersji, którą sprawdzaliśmy — nie nadaje się: zwraca wywołanie jako tekst, a nie jako `tool_calls`. Dlatego `CHAT_MODEL` w tym odcinku ustawiamy na `llama3.2`, który tę część wykonuje poprawnie. To model wyraźnie mniejszy i słabszy w samym kodowaniu, więc traktuj go tu jako **model prowadzący pętlę agenta**, a nie jako zamiennik modelu do pisania kodu. Nic nie stoi na przeszkodzie, żeby agent wołał narzędzia jednym modelem, a o kod pytał drugiego — `CHAT_MODEL` i `EMBED_MODEL` są już w tym kodzie osobnymi decyzjami, a trzecia dochodzi tu naturalnie.
+
+Nie przyjmuj powyższej tabelki na wiarę: wersje Ollamy i samych modeli zmieniają się między wydaniami, a wraz z nimi to zachowanie. **Uruchom sondę u siebie**, na modelach, których faktycznie używasz. Jeśli Twój model wypadnie na „nie", masz dwa wyjścia — zmienić model (proste i zwykle najlepsze) albo dopisać awaryjne parsowanie treści, gdy `tool_calls` jest puste. To drugie działa, ale jest kruche: raz model owinie JSON w blok markdown, raz doda zdanie wstępu, raz przekręci nazwę pola.
+
 > **Windows:** `run_tests_tool` uruchamia `pytest` z `PATH`. Jeśli w konsoli działa u Ciebie tylko `py -m pytest`, zamień listę argumentów na `["py", "-m", "pytest", path, "-q"]`.
 
 > **Zanim uznasz, że model jest za słaby — sprawdź okno kontekstu.** W tej pętli do modelu trafia naraz instrukcja systemowa, schematy narzędzi, fragmenty z RAG-a, przywołane fakty z pamięci i cała dotychczasowa wymiana z narzędziami. To potrafi być kilka tysięcy tokenów, zanim padnie pierwsze pytanie, a każdy krok pętli tylko dokłada. Po przekroczeniu okna Ollama nie zgłasza błędu — po cichu odcina najstarszą część promptu, czyli właśnie instrukcję systemową i definicje narzędzi. Objaw jest mylący: agent po kilku krokach przestaje wywoływać funkcje i zaczyna opisywać, co *by* zrobił. Ustaw `num_ctx` na 16k lub więcej i sprawdź `ollama ps` — szczegóły w [odcinku 1](../01-lokalni-agenci-ai-ollama/01-lokalni-agenci-ai-ollama.md#okno-kontekstu--ile-model-naprawdę-pamięta).
@@ -213,6 +269,7 @@ Im więcej autonomii ma agent (własne narzędzia, dostęp do systemu plików, w
 | Obszar | Pytanie kontrolne |
 |---|---|
 | Model | Czy dobrany model (odcinek 1) ma wystarczającą jakość i mieści się w pamięci sprzętu? |
+| Tool calling | Czy model **naprawdę** zwraca `tool_calls`, a nie JSON w treści? (sonda z sekcji o pętli — deklaracja w `ollama show` nie wystarcza) |
 | Okno kontekstu | Czy `num_ctx` pomieści instrukcję, schematy narzędzi, kontekst z RAG-a i całą pętlę wywołań? (`ollama ps`, kolumna `CONTEXT`) |
 | Wiedza o projekcie | Czy indeks RAG (odcinek 2) jest aktualizowany automatycznie po zmianach w repozytorium? |
 | Pamięć | Czy pamięć długoterminowa (odcinek 3) jest przypisana do konkretnego projektu i regularnie konsolidowana? |
@@ -227,7 +284,7 @@ W czterech odcinkach przeszliśmy pełną drogę od zera do własnego, w pełni 
 - **Ollama** jako silnik uruchamiający modele LLM lokalnie, z doborem modelu do sprzętu i języka (polski i angielski).
 - **RAG** dający agentowi wgląd w aktualny stan projektu.
 - **Pamięć długoterminowa** pozwalająca agentowi "pamiętać" decyzje zespołu między sesjami.
-- **Tool calling i pętla agenta** spinające to wszystko w narzędzie zdolne nie tylko odpowiadać, ale i działać (czytać pliki, uruchamiać testy, wykonywać zadania wieloetapowe).
+- **Tool calling i pętla agenta** spinające to wszystko w narzędzie zdolne nie tylko odpowiadać, ale i działać (czytać pliki, uruchamiać testy, wykonywać zadania wieloetapowe) — pod warunkiem, że model faktycznie zwraca `tool_calls`, co zawsze warto sprawdzić sondą.
 
 Cała ta architektura działa **bez wysyłania kodu czy danych firmowych do zewnętrznych usług** — co było głównym celem tej serii szkoleniowej.
 

@@ -19,8 +19,23 @@ w środowisku lokalnym.
 | 3 | [Pamięć długoterminowa agenta](03-pamiec-dlugoterminowa-agenta/03-pamiec-dlugoterminowa-agenta.md) | Wyciąganie faktów z rozmów, ocena istotności, trwałe przechowywanie |
 | 4 | [Kompletny agent programisty](04-kompletny-agent-programisty/04-kompletny-agent-programisty.md) | Spięcie RAG, pamięci i narzędzi (tool calling) w jedną pętlę |
 
-Odcinki 5 (przeniesienie na Azure AI Foundry) i 6 (dodatek do Microsoft Teams)
-są w przygotowaniu.
+### W przygotowaniu
+
+Pierwsze cztery odcinki zamykają temat lokalnego środowiska. Kolejnych pięć
+prowadzi tego samego agenta dalej — z laptopa do chmury i do rąk osób, które
+będą z niego korzystać. Każdy z nich trafi do tej tabeli dopiero po przejściu
+wszystkich kroków na żywo, na tych samych zasadach co odcinki 1–4.
+
+| # | Odcinek | Czego będzie dotyczył |
+|---|---------|-----------------------|
+| 5 | Z lokalnego środowiska na Azure AI Foundry | Endpoint zamiast `localhost`, tożsamość zamiast klucza, cena tokena, granica danych |
+| 6 | Projektujemy aplikację lokalnie, uruchamiamy w chmurze | Ollama jako darmowy warsztat do promptów; gotowa aplikacja rusza na Foundry |
+| 7 | Ten sam agent jako dodatek do Microsoft Teams | Bot w czacie prywatnym, logowanie przez Entra ID, zgoda administratora tenanta |
+| 8 | Azure AI Search — firmowa baza wiedzy | RAG z odcinka 2 dla całej organizacji: indeks, wyszukiwanie hybrydowe, uprawnienia do dokumentów |
+| 9 | Pamięć per użytkownik | Pamięć z odcinka 3 przypisana do osoby, nie do projektu; zasięg pamięci = zasięg rozmowy |
+
+Odcinki 1–4 działają w całości lokalnie. Od odcinka 5 pojawia się subskrypcja
+Azure i płatność za tokeny — każdy odcinek jasno zaznacza, co kosztuje i ile.
 
 ## Czego potrzebujesz
 
