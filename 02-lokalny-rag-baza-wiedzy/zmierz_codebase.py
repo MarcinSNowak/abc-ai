@@ -50,6 +50,12 @@ def rozmiar_promptu(zadanie):
     return znaki
 
 
+def rozmiar_ostatniej(zadanie):
+    """Znaki ostatniej wiadomości — tej, którą właśnie wysłałeś."""
+    wiadomosci = zadanie.get("messages") or []
+    return len(wiadomosci[-1].get("content") or "") if wiadomosci else 0
+
+
 def raport(zadanie, odpowiedz):
     opcje = zadanie.get("options") or {}
     okno = opcje.get("num_ctx")
@@ -80,9 +86,28 @@ def raport(zadanie, odpowiedz):
         print(f"wykorzystanie budżetu:     {zajete}%")
 
         if zajete > 100:
+            # Ollama radzi sobie z nadmiarem na dwa sposoby i skutki są różne,
+            # więc nie da się tego opisać jednym zdaniem. Gdy sama ostatnia
+            # wiadomość nie mieści się w budżecie — a tak jest przy `@codebase`,
+            # bo cały wybrany kod jedzie w jednej wiadomości — ucinane są tokeny
+            # od początku i instrukcja systemowa ginie. Gdy ostatnia wiadomość
+            # się mieści, a nie mieści się rozmowa, Ollama wyrzuca całe
+            # najstarsze wiadomości, a instrukcję systemową zachowuje.
+            ostatnia = int(rozmiar_ostatniej(zadanie) / ZNAKI_NA_TOKEN)
             print("\n>>> Prompt nie mieści się w budżecie.")
-            print(">>> Został przycięty od najstarszej strony,")
-            print(">>> czyli od instrukcji systemowej. Bez błędu.")
+            if ostatnia > budzet:
+                print(f">>> Sama ostatnia wiadomość to około {ostatnia} tokenów,")
+                print(">>> czyli więcej niż cały budżet. Ollama utnie tokeny")
+                print(">>> od początku, razem z instrukcją systemową. Bez błędu.")
+            else:
+                print(">>> Ostatnia wiadomość sama się mieści, więc Ollama")
+                print(">>> wyrzuci najstarsze wiadomości rozmowy, a instrukcję")
+                print(">>> systemową zachowa. Bez błędu i bez śladu w logu.")
+                # Przy tym mechanizmie budżet jest inny: zmierzone przy oknie
+                # 512 przeszło 460 tokenów, czyli prawie całe okno, a nie jego
+                # połowa. Rezerwa na odpowiedź obowiązuje przy ucinaniu tokenów.
+                print(f">>> Tu zmieści się prawie całe okno ({okno}), a nie")
+                print(">>> jego połowa — procent wyżej jest zawyżony.")
         if policzone and policzone < szacunek * 0.6:
             print("\n>>> Ollama policzyła znacznie mniej tokenów, niż wysłano.")
             print(">>> Część promptu do modelu nie dotarła.")

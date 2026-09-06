@@ -393,12 +393,28 @@ budżet promptu (połowa num_ctx): 4096
 wykorzystanie budżetu:     186%
 
 >>> Prompt nie mieści się w budżecie.
->>> Został przycięty od najstarszej strony,
->>> czyli od instrukcji systemowej. Bez błędu.
+>>> Sama ostatnia wiadomość to około 7580 tokenów,
+>>> czyli więcej niż cały budżet. Ollama utnie tokeny
+>>> od początku, razem z instrukcją systemową. Bez błędu.
 ==============================================================
 ```
 
 Najważniejsze są dwie liczby obok siebie: ile tokenów wysłano i ile Ollama faktycznie policzyła. Jeśli druga jest wyraźnie mniejsza, reszta nie dotarła do modelu — a odpowiedź, którą właśnie dostałeś w edytorze, powstała bez niej.
+
+**Ostatnie trzy wiersze bywają inne i to nie jest usterka.** Ollama radzi sobie z nadmiarem na dwa sposoby, a skutki są odwrotne:
+
+| | sama ostatnia wiadomość za duża | za długa cała rozmowa |
+|---|---|---|
+| co robi Ollama | ucina **tokeny** od początku | wyrzuca całe **najstarsze wiadomości** |
+| co przeżywa | koniec ostatniej wiadomości | **instrukcja systemowa** i najnowsze tury |
+| ile się zmieści | połowa `num_ctx` | prawie całe `num_ctx` |
+| kiedy to zobaczysz | `@codebase` — cały wybrany kod jedzie w jednej wiadomości | długi czat, w którym pytasz dalej i dalej |
+
+Przy `@codebase` prawie zawsze zadziała pierwszy mechanizm i to jego dotyczy przykład powyżej: instrukcja systemowa ginie. Ale jeśli po prostu długo rozmawiasz, instrukcja systemowa zostaje na miejscu, a znikają najstarsze pytania i odpowiedzi — i wtedy objaw jest inny. Model nie „przestaje słuchać instrukcji", tylko **zapomina, o czym była rozmowa dziesięć wiadomości temu**. Szukanie problemu w instrukcji systemowej jest w tym wypadku szukaniem w złym miejscu.
+
+Wiersz o budżecie też jest ważny, bo psuje procent w raporcie. Reguła „na prompt przypada połowa okna" z [odcinka 1](../01-lokalni-agenci-ai-ollama/01-lokalni-agenci-ai-ollama.md#na-prompt-przypada-połowa-okna) opisuje **ucinanie tokenów** — rezerwa jest tam po to, żeby model miał gdzie odpowiedzieć. Przy wyrzucaniu wiadomości Ollama korzysta z prawie całego okna: przy `num_ctx` 512 przeszło 460 tokenów. Skrypt liczy procent względem połowy okna, więc w tym drugim przypadku zawyża — i sam o tym uprzedza.
+
+Drugi przypadek ma jeszcze jedną nieprzyjemną własność: **nie zostawia śladu w logu serwera.** Przy ucinaniu tokenów Ollama wpisuje do logu ostrzeżenie `truncating input prompt` z dokładnymi liczbami. Przy wyrzucaniu wiadomości nie wpisuje nic — bo z jej punktu widzenia nic nie zostało ucięte, po prostu prompt złożono z mniejszej liczby wiadomości. Ten skrypt jest jedynym miejscem, w którym to widać.
 
 **5.** Teraz zmień `contextLength` na 16384, zrestartuj Continue i powtórz to samo pytanie. Porównaj oba raporty.
 
