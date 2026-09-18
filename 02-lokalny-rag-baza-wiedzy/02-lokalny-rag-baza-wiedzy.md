@@ -363,7 +363,7 @@ Po zmianie sprawdź `ollama ps`: w kolumnie `CONTEXT` powinno pojawić się 1638
 
 Wszystkie liczby powyżej pochodzą z jednej maszyny i jednej konfiguracji. U Ciebie wyjdą inne — inny model, inne repozytorium, inne ustawienia. To jedyne ćwiczenie w serii, w którym nie przepisujesz kodu, tylko mierzysz własne środowisko.
 
-Skrypt [`zmierz_codebase.py`](zmierz_codebase.py) staje między Continue a Ollamą i po każdym zapytaniu wypisuje, co naprawdę poszło. Nie wymaga żadnych bibliotek poza standardową i niczego nie zmienia w samej Ollamie.
+Skrypt [`zmierz_codebase.py`](https://github.com/MarcinSNowak/abc-ai/blob/main/02-lokalny-rag-baza-wiedzy/zmierz_codebase.py) staje między Continue a Ollamą i po każdym zapytaniu wypisuje, co naprawdę poszło. Nie wymaga żadnych bibliotek poza standardową i niczego nie zmienia w samej Ollamie.
 
 **1.** Uruchom go w osobnym oknie terminala (na Windowsie `py` zamiast `python3`):
 
