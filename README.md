@@ -21,7 +21,7 @@ w środowisku lokalnym.
 
 ### W przygotowaniu
 
-Pierwsze cztery odcinki zamykają temat lokalnego środowiska. Kolejnych pięć
+Pierwsze cztery odcinki zamykają temat lokalnego środowiska. Kolejnych sześć
 prowadzi tego samego agenta dalej — z laptopa do chmury i do rąk osób, które
 będą z niego korzystać. Każdy z nich trafi do tej tabeli dopiero po przejściu
 wszystkich kroków na żywo, na tych samych zasadach co odcinki 1–4.
@@ -33,6 +33,7 @@ wszystkich kroków na żywo, na tych samych zasadach co odcinki 1–4.
 | 7 | Ten sam agent jako dodatek do Microsoft Teams | Bot w czacie prywatnym, logowanie przez Entra ID, zgoda administratora tenanta |
 | 8 | Azure AI Search — firmowa baza wiedzy | RAG z odcinka 2 dla całej organizacji: indeks, wyszukiwanie hybrydowe, uprawnienia do dokumentów |
 | 9 | Pamięć per użytkownik | Pamięć z odcinka 3 przypisana do osoby, nie do projektu; zasięg pamięci = zasięg rozmowy |
+| 10 | Serwery MCP — narzędzia, które działają wszędzie | Narzędzia z odcinka 4 wystawione przez Model Context Protocol: jeden serwer obsługuje edytor, agenta i bota z Teams, zamiast trzech kopii tego samego kodu |
 
 Odcinki 1–4 działają w całości lokalnie. Od odcinka 5 pojawia się subskrypcja
 Azure i płatność za tokeny — każdy odcinek jasno zaznacza, co kosztuje i ile.
