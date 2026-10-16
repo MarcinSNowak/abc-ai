@@ -440,4 +440,4 @@ W kolejnym odcinku serii zajmiemy się pamięcią długoterminową agenta — ja
 
 ---
 
-*Poziom trudności: podstawowy, z opcjonalnymi fragmentami dla chętnych (kod Python) · Czas czytania: ~15 minut*
+*Poziom trudności: podstawowy, z opcjonalnymi fragmentami dla chętnych (kod Python) · Czas czytania: ~20 minut*

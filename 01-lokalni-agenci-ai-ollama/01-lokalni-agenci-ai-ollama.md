@@ -720,9 +720,33 @@ W JetBrains (Continue/ProxyAI) oraz w Android Studio analogiczne pole nazywa si�
 | `qwen2.5` / `qwen2.5-coder` | Bardzo dobra wielojęzyczność, poprawna polszczyzna, silne wsparcie kodu |
 | `llama3.1` | Dobra jakość polskiego, sprawdzone wsparcie narzędzi (tool calling) |
 | `gemma2` | Poprawny polski, dobry do dokumentacji i opisów |
-| `bielik` (SpeakLeash) | Model trenowany od podstaw z naciskiem na język polski — najlepsza jakość stylistyczna i idiomatyczna po polsku, kosztem słabszego wsparcia dla kodu i tool calling w porównaniu do modeli typu "coder" |
+| `bielik` (SpeakLeash) | Model trenowany od podstaw z naciskiem na język polski — najlepsza jakość stylistyczna i idiomatyczna po polsku |
 
-> Model `bielik` nie zawsze jest dostępny bezpośrednio w oficjalnej bibliotece `ollama.com/library` — może wymagać importu z pliku GGUF (np. z Hugging Face) przy użyciu własnego `Modelfile` (`ollama create bielik -f Modelfile`, zgodnie z [dokumentacją importu modeli](https://docs.ollama.com/import)). Warto go rozważyć w zadaniach, gdzie liczy się naturalność i poprawność językowa polskiego tekstu (np. generowanie dokumentacji, opisów, treści marketingowych), a mniej — generowanie kodu.
+> **Trzy pierwsze wiersze tej tabeli to oszacowanie, nie pomiar.** Wiersz o Bieliku był nim do niedawna też i okazał się nieprawdziwy — poprawiliśmy go niżej, a pozostałe trzy zostawiamy takimi, jakie były, żeby nie udawały zmierzonych. Traktuj je jako punkt wyjścia do własnej próby, a nie jako wynik.
+
+#### Bielik — sprawdzone 2026-10-16
+
+Starsze wydanie tego odcinka pisało, że Bielik „może wymagać importu z pliku GGUF przy użyciu własnego `Modelfile`" i że ma „słabsze wsparcie dla tool calling". **Obie rzeczy przestały być prawdą** i zostawiamy tu ślad po nich, bo czytelnik mógł trafić na tamtą wersję.
+
+SpeakLeash — zespół, który Bielika zrobił — ma własną przestrzeń w rejestrze Ollamy. Nie trzeba niczego konwertować:
+
+```bash
+ollama run SpeakLeash/bielik-11b-v3.0-instruct:Q4_K_M   # 6,7 GB, okno 32K
+```
+
+Dostępne są też warianty `Q5_K_M`, `Q6_K` i `Q8_0`, a na słabszy sprzęt modele 4,5B i 1,5B. Licencja **Apache 2.0** dla wersji 2.x i 3.0 — wolno komercyjnie. Wyjątkiem jest najstarszy `Bielik-7B-Instruct-v0.1` na CC BY-NC 4.0.
+
+Obsługę narzędzi sprawdziliśmy [tą samą sondą, co w odcinku 4](../04-kompletny-agent-programisty/04-kompletny-agent-programisty.md#zanim-uruchomisz-sprawdź-czy-twój-model-naprawdę-zwraca-tool_calls) — trzy próby, bo chodzi o powtarzalność:
+
+```text
+SpeakLeash/bielik-11b-v3.0-instruct:Q4_K_M   tool_calls=TAK   3/3
+```
+
+Argumenty przychodzą jako `dict`, nazwa narzędzia poprawna za każdym razem. Bielik nadaje się więc do pętli agenta — inaczej, niż pisaliśmy wcześniej.
+
+> **Czego ten pomiar nie mówi.** Sprawdziliśmy, że Bielik *zwraca* `tool_calls`, a nie że jest dobrym modelem do kodu. To osobne pytanie i osobny pomiar.
+
+Jedna obserwacja z tego samego dnia, bo dotyczy każdego, kto chce posadzić polski model nad firmowymi danymi: na pięciu pytaniach kontrolnych Bielik był wyraźnie lepszy od `llama3.2` w odmianie i terminologii — i **przegrał oba pytania, na które poprawną odpowiedzią było „nie wiem"**. Zapytany o numer rejestrowy konkretnej spółki i o cenę konkretnego szkolenia, podał zmyślone wartości zdaniem oznajmującym. `llama3.2` w obu przypadkach odmówił. Pięć pytań to za mało, żeby nazwać to pomiarem — ale wystarczy, żeby nie zakładać, że lepsza polszczyzna oznacza większą ostrożność.
 
 ### Dobre praktyki przy pracy wielojęzycznej
 
@@ -835,6 +859,13 @@ Pamiętaj, aby przy zmianie hosta lub portu zaktualizować `base_url` / `apiBase
 
 Modele potrafią zająć kilkadziesiąt gigabajtów. Jeśli brakuje miejsca na dysku systemowym — a na laptopach z Windows to częsty przypadek — przenieś katalog zmienną `OLLAMA_MODELS`. Na Linuksie nadaj przy tym prawa użytkownikowi usługi: `sudo chown -R ollama:ollama <katalog>`.
 
+Po kilku tygodniach pracy z serią katalog rośnie szybciej, niż się wydaje: maszyna, na której sprawdzaliśmy te odcinki, miała w pewnym momencie **osiem modeli i 82 GiB**. Dwie rzeczy warto wiedzieć od razu, bo obie są wbrew intuicji:
+
+- **`ollama list` i `du` nigdy się nie zgodzą.** Pierwszy podaje gigabajty dziesiętne, drugi gibibajty. Te same dane to „87,5 GB" w jednym i „82 GiB" w drugim — nie szukaj brakujących pięciu gigabajtów.
+- **`ollama cp` nie kopiuje wag.** Kopia modelu to sam manifest wskazujący te same pliki; usunięcie kopii przez `ollama rm` nie rusza plików, z których nadal korzysta oryginał.
+
+Nie ma komendy `ollama prune` ani żadnej, która powie, co zajmuje miejsce — `ollama rm <model>` trzeba wywołać świadomie. Zanim to zrobisz, zadaj sobie pytanie, które brzmi inaczej niż „kiedy ostatnio tego używałem": **czy ten model będzie mi jeszcze potrzebny, żeby powtórzyć jakiś pomiar.** Model na dysku bywa przyrządem, a nie pozostałością — `qwen2.5-coder:7b` i `:14b` wyglądają jak dwie wersje tego samego, a są dwiema kolumnami [pomiaru tokenizacji](#token--jednostka-w-której-liczy-się-wszystko) w tym odcinku.
+
 ## Dobre praktyki
 
 1. **Dobieraj rozmiar modelu do sprzętu** – model 7–8B parametrów to dobry punkt startowy na laptopie.
@@ -853,4 +884,4 @@ W kolejnym odcinku serii omówimy budowę agenta z dostępem do bazy wiedzy proj
 
 ---
 
-*Poziom trudności: podstawowy · Czas czytania: ~35 minut*
+*Poziom trudności: podstawowy · Czas czytania: ~40 minut*
